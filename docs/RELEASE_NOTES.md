@@ -29,5 +29,8 @@ validation protocol is completed.
 ## Compatibility
 
 Primary target: current Chrome, Edge, Firefox, Safari, iOS Safari, and Android
-Chrome. Automated browser journeys run on Chromium at desktop and phone
-viewports; manual/live smoke checks are part of the release process.
+Chrome. Automated browser journeys run on desktop and phone Chromium, desktop
+Firefox, desktop WebKit, and iOS WebKit. Offline reload is exercised in
+Chromium and Firefox; Playwright's WebKit offline emulation is skipped because
+it fails inside the test browser, while the remaining Safari/WebKit journeys
+stay required.
