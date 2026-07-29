@@ -1348,6 +1348,16 @@ input[type="password"] {
   color: var(--green);
 }
 
+.report-replace {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.capture-report:focus {
+  outline: 3px solid var(--accent-dark);
+  outline-offset: -3px;
+}
+
 .results-hero {
   display: grid;
   min-height: 530px;

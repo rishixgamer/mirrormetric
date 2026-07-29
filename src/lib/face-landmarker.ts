@@ -19,8 +19,10 @@ type WorkerMessage = WorkerSuccessMessage | WorkerErrorMessage;
 interface PendingRequest {
   readonly resolve: (result: DetectionResult) => void;
   readonly reject: (error: Error) => void;
+  readonly timeout: ReturnType<typeof globalThis.setTimeout>;
 }
 
+const DETECTION_TIMEOUT_MS = 45_000;
 let worker: Worker | undefined;
 let nextRequestId = 1;
 const pending = new Map<number, PendingRequest>();
@@ -83,6 +85,16 @@ function developmentFixture(kind: string): DetectionResult {
   };
 }
 
+function stopWorker(error: Error): void {
+  for (const request of pending.values()) {
+    globalThis.clearTimeout(request.timeout);
+    request.reject(error);
+  }
+  pending.clear();
+  worker?.terminate();
+  worker = undefined;
+}
+
 function getWorker(): Worker {
   if (worker) return worker;
   worker = new Worker(new URL("../workers/face-worker.ts", import.meta.url), {
@@ -93,6 +105,7 @@ function getWorker(): Worker {
     const request = pending.get(event.data.id);
     if (!request) return;
     pending.delete(event.data.id);
+    globalThis.clearTimeout(request.timeout);
     if ("error" in event.data) {
       request.reject(new Error(event.data.error));
     } else {
@@ -100,16 +113,11 @@ function getWorker(): Worker {
     }
   });
   worker.addEventListener("error", () => {
-    for (const request of pending.values()) {
-      request.reject(
-        new Error(
-          "The on-device analysis worker stopped unexpectedly. Refresh and try again.",
-        ),
-      );
-    }
-    pending.clear();
-    worker?.terminate();
-    worker = undefined;
+    stopWorker(
+      new Error(
+        "The on-device analysis worker stopped unexpectedly. Try the scan again.",
+      ),
+    );
   });
   return worker;
 }
@@ -132,13 +140,30 @@ export async function detectFace(file: Blob): Promise<DetectionResult> {
   });
   const id = nextRequestId++;
   return new Promise<DetectionResult>((resolve, reject) => {
-    pending.set(id, { resolve, reject });
-    getWorker().postMessage({ id, bitmap }, [bitmap]);
+    const timeout = globalThis.setTimeout(() => {
+      if (!pending.has(id)) return;
+      stopWorker(
+        new Error(
+          "The private face model took too long to respond. Check the connection, then try the scan again.",
+        ),
+      );
+    }, DETECTION_TIMEOUT_MS);
+    pending.set(id, { resolve, reject, timeout });
+    try {
+      getWorker().postMessage({ id, bitmap }, [bitmap]);
+    } catch (caught: unknown) {
+      pending.delete(id);
+      globalThis.clearTimeout(timeout);
+      bitmap.close();
+      reject(
+        caught instanceof Error
+          ? caught
+          : new Error("The private face model could not start."),
+      );
+    }
   });
 }
 
 export function disposeFaceWorker(): void {
-  worker?.terminate();
-  worker = undefined;
-  pending.clear();
+  stopWorker(new Error("The on-device analysis was cancelled."));
 }

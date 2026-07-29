@@ -119,6 +119,60 @@ test("precision mode accepts three captures and reports stability", async ({
   await expect(page.locator(".stability-stable")).toHaveCount(18);
 });
 
+test("camera validates the captured photo instead of the previous live frame", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: async () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 800;
+          canvas.height = 800;
+          const context = canvas.getContext("2d")!;
+          for (let y = 0; y < canvas.height; y += 4) {
+            for (let x = 0; x < canvas.width; x += 4) {
+              context.fillStyle = (x + y) % 8 ? "#eeeeee" : "#181818";
+              context.fillRect(x, y, 4, 4);
+            }
+          }
+          const stream = canvas.captureStream(10);
+          const track = stream.getVideoTracks()[0] as
+            | (MediaStreamTrack & { requestFrame?: () => void })
+            | undefined;
+          track?.requestFrame?.();
+          return stream;
+        },
+      },
+    });
+  });
+  await page.goto("/analyze?mode=quick");
+  await page.evaluate(() =>
+    sessionStorage.setItem("mirrormetric:e2e-detection", "accepted"),
+  );
+  await page.getByRole("button", { name: "Use camera" }).click();
+  const captureButton = page.getByRole("button", { name: "Capture photo" });
+  await expect(captureButton).toBeEnabled({ timeout: 20_000 });
+
+  await page.evaluate(() =>
+    sessionStorage.setItem("mirrormetric:e2e-detection", "multiple"),
+  );
+  await captureButton.click();
+  await expect(page.getByRole("heading", { name: "Center your face in the guide" })).toBeVisible();
+  await expect(page.locator('.camera-feedback li[data-severity="error"]')).toContainText(
+    "One face",
+  );
+
+  await page.evaluate(() =>
+    sessionStorage.setItem("mirrormetric:e2e-detection", "accepted"),
+  );
+  await expect(captureButton).toBeEnabled({ timeout: 20_000 });
+  await captureButton.click();
+  await expect(page.getByText("1 of 1 selected")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Center your face in the guide" })).toBeHidden();
+});
+
 test("bad capture and model failure recover without a reload", async ({
   page,
 }) => {
@@ -130,7 +184,16 @@ test("bad capture and model failure recover without a reload", async ({
   await confirmAdultUse(page);
   await page.getByRole("button", { name: "Analyze 1 capture" }).click();
   await expect(page.getByText("Retake", { exact: true })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText(
+    "Failed checks: One face.",
+  );
+  await expect(page.locator(".capture-report")).toBeFocused();
   await expect(page.getByText(/2 faces detected/)).toBeVisible();
+  await page.getByRole("button", { name: "Remove and retake" }).click();
+  await expect(page.getByText("0 of 1 selected")).toBeVisible();
+  await page
+    .locator('input[type="file"]')
+    .setInputFiles(await patternedPhoto(page));
 
   await page.evaluate(() =>
     sessionStorage.setItem("mirrormetric:e2e-detection", "error"),
@@ -178,6 +241,7 @@ test("real model stays same-origin and remains available offline", async ({
     requests.push({ url: request.url(), body: request.postData() });
   });
   await page.goto("/analyze?mode=quick");
+  const appOrigin = new URL(page.url()).origin;
   const photo = await patternedPhoto(page, "no-face-pattern.png");
   await page.locator('input[type="file"]').setInputFiles(photo);
   await confirmAdultUse(page);
@@ -192,7 +256,7 @@ test("real model stays same-origin and remains available offline", async ({
   expect(
     requests.every(
       (request) =>
-        new URL(request.url).origin === "http://127.0.0.1:4173" &&
+        new URL(request.url).origin === appOrigin &&
         request.body === null,
     ),
   ).toBe(true);

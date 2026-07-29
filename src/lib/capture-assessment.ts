@@ -212,3 +212,26 @@ export function assessCapture(
     issues,
   };
 }
+
+export function captureFailureMessage(
+  assessments: ReadonlyArray<CaptureAssessment>,
+): string {
+  const rejected = assessments.filter((assessment) => !assessment.accepted);
+  const blockingLabels = [
+    ...new Set(
+      rejected.flatMap((assessment) =>
+        assessment.issues
+          .filter((candidate) => candidate.severity === "error")
+          .map((candidate) => candidate.label),
+      ),
+    ),
+  ];
+  const subject =
+    rejected.length === 1 ? "this photo" : `${rejected.length} photos`;
+  const replacement = rejected.length === 1 ? "it" : "them";
+  const reasons =
+    blockingLabels.length > 0
+      ? ` Failed checks: ${blockingLabels.join(", ")}.`
+      : "";
+  return `Retake ${subject}.${reasons} Follow the detailed checks, then replace ${replacement}.`;
+}
