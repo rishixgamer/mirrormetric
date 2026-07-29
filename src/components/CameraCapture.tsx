@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { CaptureAssessment } from "../domain/contracts";
-import { assessCapture } from "../lib/capture-assessment";
-import { detectFace } from "../lib/face-landmarker";
-import { assessImageQuality } from "../lib/image-quality";
+import {
+  cameraErrorMessage,
+  requestCameraStream,
+} from "../lib/camera";
+import { evaluateCapture } from "../lib/capture-evaluation";
 
 interface CameraCaptureProps {
   readonly onCapture: (file: File) => void;
@@ -12,45 +14,64 @@ interface CameraCaptureProps {
 export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | undefined>(undefined);
+  const capturePendingRef = useRef(false);
   const [error, setError] = useState<string>();
   const [ready, setReady] = useState(false);
+  const [capturePending, setCapturePending] = useState(false);
+  const [cameraAttempt, setCameraAttempt] = useState(0);
   const [liveAssessment, setLiveAssessment] =
     useState<CaptureAssessment>();
   const [feedbackStatus, setFeedbackStatus] = useState(
-    "Starting the camera and private face model…",
+    "Requesting camera access…",
   );
 
   useEffect(() => {
     let active = true;
-    void navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 1280 },
-        },
-      })
-      .then((stream) => {
+    setError(undefined);
+    setReady(false);
+    setLiveAssessment(undefined);
+    setFeedbackStatus("Requesting camera access…");
+
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices?.getUserMedia) {
+      setError(
+        "This browser cannot access a camera. Try a current browser or upload a photo instead.",
+      );
+      return () => {
+        active = false;
+      };
+    }
+
+    void requestCameraStream(mediaDevices.getUserMedia.bind(mediaDevices))
+      .then(async (stream) => {
         if (!active) {
           stream.getTracks().forEach((track) => track.stop());
           return;
         }
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        const video = videoRef.current;
+        if (!video) {
+          stream.getTracks().forEach((track) => track.stop());
+          throw new Error("Camera preview is unavailable.");
         }
+        video.srcObject = stream;
+        setFeedbackStatus("Starting the camera preview…");
+        await video.play();
+        if (active) setReady(true);
       })
-      .catch(() => {
-        setError(
-          "Camera access is unavailable. You can still upload a photo from this device.",
-        );
+      .catch((caught: unknown) => {
+        if (!active) return;
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = undefined;
+        setError(cameraErrorMessage(caught));
       });
+
     return () => {
       active = false;
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = undefined;
     };
-  }, []);
+  }, [cameraAttempt]);
 
   async function frameFile(
     video: HTMLVideoElement,
@@ -81,7 +102,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
 
     const checkFrame = async () => {
       const video = videoRef.current;
-      if (!video || document.hidden) {
+      if (!video || document.hidden || capturePendingRef.current) {
         timeout = window.setTimeout(checkFrame, 1200);
         return;
       }
@@ -89,10 +110,8 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
         setFeedbackStatus("Checking the live frame on this device…");
         const file = await frameFile(video, 0.8);
         if (!file) throw new Error("Frame unavailable.");
-        const quality = await assessImageQuality(file);
-        const detection = await detectFace(file);
-        const assessment = assessCapture(quality, detection);
-        if (!cancelled) {
+        const { assessment } = await evaluateCapture(file);
+        if (!cancelled && !capturePendingRef.current) {
           setLiveAssessment(assessment);
           setFeedbackStatus(
             assessment.accepted
@@ -100,11 +119,13 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
               : "Adjust the items marked “Fix,” then hold still.",
           );
         }
-      } catch {
-        if (!cancelled) {
+      } catch (caught: unknown) {
+        if (!cancelled && !capturePendingRef.current) {
           setLiveAssessment(undefined);
           setFeedbackStatus(
-            "Live face checks are still preparing. You can close the camera and upload instead.",
+            caught instanceof Error
+              ? caught.message
+              : "Live face checks are still preparing. You can close the camera and upload instead.",
           );
         }
       }
@@ -118,16 +139,46 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
   }, [ready]);
 
   async function takePhoto() {
+    if (capturePendingRef.current) return;
     const video = videoRef.current;
     if (!video) return;
-    const file = await frameFile(video);
-    if (!file) {
-      setError("The browser could not create a photo. Try uploading instead.");
-      return;
+    capturePendingRef.current = true;
+    setCapturePending(true);
+    setError(undefined);
+    setFeedbackStatus("Checking the captured photo before continuing…");
+    try {
+      const file = await frameFile(video);
+      if (!file) {
+        throw new Error(
+          "The browser could not create a photo. Try uploading instead.",
+        );
+      }
+      const { assessment } = await evaluateCapture(file);
+      setLiveAssessment(assessment);
+      if (!assessment.accepted) {
+        setFeedbackStatus(
+          "That captured frame needs another try. Fix the items marked below, hold still, and capture again.",
+        );
+        return;
+      }
+      setFeedbackStatus("Captured photo passed every check.");
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      onCapture(file);
+      onClose();
+    } catch (caught: unknown) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "The captured photo could not be checked. Try again or upload a photo.",
+      );
+    } finally {
+      capturePendingRef.current = false;
+      setCapturePending(false);
     }
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    onCapture(file);
-    onClose();
+  }
+
+  function retryCamera() {
+    setCameraAttempt((attempt) => attempt + 1);
   }
 
   return (
@@ -143,7 +194,14 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
       </div>
       {error ? (
         <div className="alert alert-error" role="alert" aria-live="assertive">
-          {error}
+          <p>{error}</p>
+          <button
+            className="button button-outline"
+            type="button"
+            onClick={retryCamera}
+          >
+            Try camera again
+          </button>
         </div>
       ) : (
         <div className="camera-frame">
@@ -152,7 +210,6 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
             autoPlay
             muted
             playsInline
-            onCanPlay={() => setReady(true)}
             aria-label="Live front camera preview"
           />
           <div className="camera-guide" aria-hidden="true" />
@@ -182,10 +239,15 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
         <button
           className="button button-primary"
           type="button"
-          disabled={!ready || Boolean(error) || !liveAssessment?.accepted}
+          disabled={
+            !ready ||
+            Boolean(error) ||
+            capturePending ||
+            !liveAssessment?.accepted
+          }
           onClick={() => void takePhoto()}
         >
-          Capture photo
+          {capturePending ? "Checking photo…" : "Capture photo"}
         </button>
       </div>
     </section>

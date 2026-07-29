@@ -4,7 +4,10 @@ import {
   type DetectionResult,
 } from "../domain/contracts";
 import type { Landmark } from "../domain/landmarks";
-import { assessCapture } from "./capture-assessment";
+import {
+  assessCapture,
+  captureFailureMessage,
+} from "./capture-assessment";
 import type { ImageQualityResult } from "./image-quality";
 
 const landmarks: Landmark[] = Array.from({ length: 478 }, (_, index) => ({
@@ -54,6 +57,29 @@ describe("capture assessment", () => {
     );
     expect(result.issues.find((item) => item.id === "pose")?.severity).toBe(
       "error",
+    );
+  });
+
+  it("names the blocking checks in the retake message", () => {
+    const result = assessCapture(quality, {
+      ...detection,
+      faceCount: 2,
+      pose: { ...detection.pose, yaw: 8 },
+    });
+
+    expect(captureFailureMessage([result])).toBe(
+      "Retake this photo. Failed checks: One face, Head pose. Follow the detailed checks, then replace it.",
+    );
+  });
+
+  it("deduplicates blocking checks across multiple retakes", () => {
+    const result = assessCapture(quality, {
+      ...detection,
+      pose: { ...detection.pose, yaw: 8 },
+    });
+
+    expect(captureFailureMessage([result, result])).toBe(
+      "Retake 2 photos. Failed checks: Head pose. Follow the detailed checks, then replace them.",
     );
   });
 });

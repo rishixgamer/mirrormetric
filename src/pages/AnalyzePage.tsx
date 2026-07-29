@@ -7,9 +7,8 @@ import type {
   CaptureAssessment,
   GoalProfileId,
 } from "../domain/contracts";
-import { assessCapture } from "../lib/capture-assessment";
-import { detectFace } from "../lib/face-landmarker";
-import { assessImageQuality } from "../lib/image-quality";
+import { captureFailureMessage } from "../lib/capture-assessment";
+import { evaluateCapture } from "../lib/capture-evaluation";
 import { computeMeasurements } from "../lib/measurement-engine";
 import { GOAL_PROFILES } from "../lib/scoring";
 import { createAnalysisSession } from "../lib/session";
@@ -74,12 +73,22 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
     Array<{ fileName: string; assessment: CaptureAssessment }>
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const captureSetupRef = useRef<HTMLDivElement>(null);
+  const captureReportRef = useRef<HTMLElement>(null);
 
   const requiredCount = mode === "precision" ? 3 : 1;
   const consentsComplete =
     adultConfirmed && permissionConfirmed && limitsConfirmed;
   const canAnalyze =
     consentsComplete && files.length === requiredCount && !busy;
+
+  useEffect(() => {
+    if (!reports.some((report) => !report.assessment.accepted)) return;
+    const report = captureReportRef.current;
+    if (!report) return;
+    report.focus({ preventScroll: true });
+    report.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [reports]);
 
   function validateFile(file: File): string | undefined {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -112,6 +121,22 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
     setError(undefined);
   }
 
+  function removeCapture(index: number) {
+    setFiles((current) =>
+      current.filter((_, candidate) => candidate !== index),
+    );
+    setReports([]);
+    setError(undefined);
+  }
+
+  function removeFailedCapture(index: number) {
+    removeCapture(index);
+    captureSetupRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   async function analyze() {
     if (!canAnalyze) return;
     setBusy(true);
@@ -126,11 +151,15 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
     try {
       for (let index = 0; index < files.length; index++) {
         const file = files[index];
-        setStatus(`Checking capture ${index + 1} of ${files.length}…`);
-        const quality = await assessImageQuality(file);
-        setStatus(`Running private landmark detection ${index + 1} of ${files.length}…`);
-        const detection = await detectFace(file);
-        const assessment = assessCapture(quality, detection);
+        const { quality, detection, assessment } = await evaluateCapture(
+          file,
+          (phase) =>
+            setStatus(
+              phase === "quality"
+                ? `Checking capture ${index + 1} of ${files.length}…`
+                : `Running private landmark detection ${index + 1} of ${files.length}…`,
+            ),
+        );
         nextReports.push({ fileName: file.name, assessment });
         if (!assessment.accepted) continue;
         completed.push({
@@ -150,7 +179,9 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
       setReports(nextReports);
       if (completed.length !== files.length) {
         setError(
-          "At least one capture did not meet the strict front-view rules. Review the checks below and replace it.",
+          captureFailureMessage(
+            nextReports.map((report) => report.assessment),
+          ),
         );
         return;
       }
@@ -222,7 +253,7 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
           </div>
         </div>
 
-        <div className="capture-setup">
+        <div ref={captureSetupRef} className="capture-setup">
           <span className="step-kicker">Step 02 · provide captures</span>
           <div className="capture-heading">
             <h2>
@@ -280,11 +311,7 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
                   key={`${file.name}-${file.lastModified}-${index}`}
                   file={file}
                   index={index}
-                  onRemove={() =>
-                    setFiles((current) =>
-                      current.filter((_, candidate) => candidate !== index),
-                    )
-                  }
+                  onRemove={() => removeCapture(index)}
                 />
               ))}
             </div>
@@ -392,7 +419,12 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
       </section>
 
       {reports.length > 0 && (
-        <section className="section capture-report" aria-labelledby="capture-report-title">
+        <section
+          ref={captureReportRef}
+          className="section capture-report"
+          aria-labelledby="capture-report-title"
+          tabIndex={-1}
+        >
           <div className="section-intro">
             <span className="eyebrow">Capture gate</span>
             <h2 id="capture-report-title">What passed—and what needs another photo.</h2>
@@ -428,6 +460,15 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
                     </li>
                   ))}
                 </ul>
+                {!report.assessment.accepted && (
+                  <button
+                    className="button button-outline report-replace"
+                    type="button"
+                    onClick={() => removeFailedCapture(reportIndex)}
+                  >
+                    Remove and retake
+                  </button>
+                )}
               </article>
             ))}
           </div>
