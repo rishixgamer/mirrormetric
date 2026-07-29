@@ -121,7 +121,11 @@ test("precision mode accepts three captures and reports stability", async ({
 
 test("camera validates the captured photo instead of the previous live frame", async ({
   page,
-}) => {
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name.includes("webkit"),
+    "Playwright WebKit does not reliably play a synthetic canvas camera stream; Chromium and Firefox cover this exact captured-frame gate.",
+  );
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "mediaDevices", {
       configurable: true,
