@@ -3,6 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 
 const macChrome =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const localChrome = existsSync(macChrome)
+  ? { launchOptions: { executablePath: macChrome } }
+  : {};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -15,13 +18,16 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
-    launchOptions: existsSync(macChrome)
-      ? { executablePath: macChrome }
-      : undefined,
   },
   projects: [
-    { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },
+    {
+      name: "desktop-chromium",
+      use: { ...devices["Desktop Chrome"], ...localChrome },
+    },
+    {
+      name: "mobile-chromium",
+      use: { ...devices["Pixel 7"], ...localChrome },
+    },
     { name: "desktop-firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "desktop-webkit", use: { ...devices["Desktop Safari"] } },
     { name: "ios-webkit", use: { ...devices["iPhone 15"] } },
