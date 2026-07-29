@@ -1,0 +1,11 @@
+{
+  "name": "MirrorMetric",
+  "short_name": "MirrorMetric",
+  "description": "Private, transparent adult facial measurements in your browser.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f0e8",
+  "theme_color": "#f4f0e8"
+}
