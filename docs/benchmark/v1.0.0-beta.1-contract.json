@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "synthetic-contract-baseline",
+  "release": "v1.0.0-beta.1",
+  "dataset": "synthetic-contract-fixture",
+  "normalization": "interocular distance",
+  "overall": {
+    "sampleCount": 2,
+    "nme": 0.018548317007486596,
+    "auc": 0.8145168299251341,
+    "failureRate": 0,
+    "failureThreshold": 0.1
+  },
+  "warning": "This validates benchmark arithmetic only and is not a facial-landmark accuracy result."
+}
