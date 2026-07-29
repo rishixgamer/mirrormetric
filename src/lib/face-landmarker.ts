@@ -27,7 +27,7 @@ let worker: Worker | undefined;
 let nextRequestId = 1;
 const pending = new Map<number, PendingRequest>();
 
-function developmentFixture(kind: string): DetectionResult {
+function developmentFixture(kind: string, fileName = ""): DetectionResult {
   if (kind === "error") {
     throw new Error(
       "The on-device model could not load. Check the connection, then try again.",
@@ -48,7 +48,11 @@ function developmentFixture(kind: string): DetectionResult {
   set(FACE_INDEX.leftCheek, 0.1, 0.5);
   set(FACE_INDEX.rightCheek, 0.9, 0.5);
   set(FACE_INDEX.leftJaw, 0.2, 0.75);
-  set(FACE_INDEX.rightJaw, 0.8, 0.75);
+  const jawVariation =
+    kind === "variable" && /(?:^|[-_])2(?:[-_.]|$)/.test(fileName)
+      ? 0.12
+      : 0;
+  set(FACE_INDEX.rightJaw, 0.8 - jawVariation, 0.75);
   set(FACE_INDEX.leftEyeOuter, 0.2, 0.4);
   set(FACE_INDEX.leftEyeInner, 0.35, 0.4);
   set(FACE_INDEX.rightEyeInner, 0.65, 0.4);
@@ -127,7 +131,12 @@ export async function detectFace(file: Blob): Promise<DetectionResult> {
     ["localhost", "127.0.0.1"].includes(window.location.hostname)
       ? window.sessionStorage.getItem("mirrormetric:e2e-detection")
       : null;
-  if (fixture) return developmentFixture(fixture);
+  if (fixture) {
+    return developmentFixture(
+      fixture,
+      file instanceof File ? file.name : "",
+    );
+  }
 
   if (!("Worker" in window) || !("createImageBitmap" in window)) {
     throw new Error(

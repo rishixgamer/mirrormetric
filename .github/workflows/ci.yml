@@ -18,6 +18,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Verify attractiveness training reproducibility, release gates, license, and pack checksum
+        run: pnpm verify:attractiveness
       - run: pnpm benchmark
       - run: pnpm audit --audit-level high
 
@@ -57,6 +59,7 @@ jobs:
           test -f dist/index.html
           test -f dist/server/index.js
           test -f dist/models/face_landmarker.task
+          test -f dist/models/attractiveness/NOTICE.txt
           test -f dist/service-worker.js
           test -f dist/og.png
           GZIP_BYTES=$(gzip -c dist/assets/index-*.js | wc -c)

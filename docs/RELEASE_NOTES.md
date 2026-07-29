@@ -1,5 +1,18 @@
 # `v1.0.0-beta.1` release notes
 
+## Unreleased — experimental benchmark score
+
+- Replaces new-session goal profiles with an explicit optional adult-man
+  `x.x / 10` experimental SCUT benchmark estimate.
+- Adds schema-two results, 90% ranges, exact contributions, withholding
+  reasons, and read-only migration of legacy goal scores.
+- Adds lazy same-origin checksum-verified model loading and offline caching.
+- Adds the external-data SCUT 86-point adapter, 19-anchor mapping fixtures,
+  deterministic nested five-fold ridge pipeline, statistical release gates,
+  license gate, and pack verification.
+- Does not bundle a SCUT-derived pack pending redistribution confirmation, so
+  the production score currently fails closed.
+
 MirrorMetric’s first public beta replaces the eight-measurement prototype with
 an evidence-first, adult-only product.
 
@@ -11,7 +24,8 @@ an evidence-first, adult-only product.
 - 18 versioned candidate measurements and perturbation sensitivity.
 - Confidence, uncertainty, formulas, anchors, sources, and limitations.
 - Accessible manual landmark correction.
-- Optional transparent style-goal similarity.
+- Optional transparent style-goal similarity (preserved only for legacy
+  records after the unreleased schema-two change).
 - Reversible experiments and universal professional-safety education.
 - Passphrase-encrypted local history, deletion, JSON, encrypted archive, and
   print-to-PDF.

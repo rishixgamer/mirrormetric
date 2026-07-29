@@ -4,13 +4,15 @@ Target: WCAG 2.2 Level AA.
 
 ## Automated release evidence
 
-- Axe browser audit: no A/AA/2.2-AA violations on public product/policy routes.
+- Axe browser audit: no A/AA/2.2-AA violations on every public
+  product/policy route and available, withheld, and opted-out result states.
 - End-to-end keyboard-operable scan, correction, history, deletion, and error
   recovery journeys at desktop and phone viewports.
 - CSS audit: 4/4 detected foreground/background pairs pass AA normal text;
   primary paper and dark themes exceed 15:1, error text exceeds 9:1.
-- React source audit led to explicit alert live regions and a fieldset/legend
-  for required confirmations.
+- React source audit led to explicit alert live regions, fieldset/legend
+  grouping for required and score confirmations, a single labeled file picker,
+  and one complete accessible name for the score and its 90% range.
 
 The source scanner also reports file-level false positives because it treats
 every component and stylesheet as a standalone document. In the rendered DOM,

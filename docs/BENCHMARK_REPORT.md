@@ -46,6 +46,16 @@ Before any landmark-accuracy claim, a maintainer must:
 Later releases may not worsen its aggregate NME or failure rate by more than 5%
 without a documented review.
 
+## Experimental score-model status
+
+No SCUT-derived model result is claimed in this report. The repository contains
+only an external-data adapter and deterministic synthetic training contract.
+A future report must publish nested five-fold Pearson, MAE, RMSE, 90%
+absolute-error quantile, Asian-male MAE, Caucasian-male MAE, selected
+regularization, seed, provenance, license decision, and model-pack checksum.
+The product fails closed until that report passes the published gates and
+redistribution is confirmed.
+
 ## Context, not equivalence
 
 Google’s Face Mesh V2 model card reports its own evaluation under Google’s

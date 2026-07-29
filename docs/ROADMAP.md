@@ -11,7 +11,11 @@
 - [x] Perturbation sensitivity, confidence, uncertainty, and stability.
 - [x] Accessible correction editor with dragging, keyboard controls, undo, and
   reset.
-- [x] Optional user-chosen goal profiles with visible bands and weights.
+- [x] Preserve old user-chosen goal scores as read-only legacy records.
+- [x] Add adult-man opt-in, schema-two benchmark results, transparent
+  contributions, fail-closed model loading, and SCUT training adapter.
+- [ ] Confirm redistribution rights and publish a statistically eligible,
+  checksum-pinned SCUT-derived model pack.
 - [x] Reversible guidance and universal professional-safety education.
 - [x] Passphrase-encrypted, opt-in local history and local exports.
 - [x] Lazy worker inference, self-hosted assets, checksums, and offline cache.
@@ -28,6 +32,8 @@
 - Publish inter-rater error, limits of agreement, camera-family results, and
   powered subgroup uncertainty.
 - Promote only measurements that pass the published repeatability gates.
+- Run cohort-specific pairwise voting before making any claim about what U.S.
+  women ages 18–21 prefer.
 
 ## Explicitly outside this beta
 

@@ -3,7 +3,7 @@ import { RouteLink, useDocumentMeta } from "../router";
 export function HomePage() {
   useDocumentMeta(
     "Private facial measurements",
-    "Transparent facial geometry, repeatability checks, and optional goal profiles that run privately in your browser.",
+    "Transparent facial geometry, repeatability checks, and an optional experimental SCUT benchmark estimate that runs privately in your browser.",
   );
 
   return (
@@ -91,7 +91,7 @@ export function HomePage() {
           <p>
             A single photograph is convenient. A precision scan is more honest:
             it checks whether the same metric holds across three accepted
-            captures before using it in the optional goal score.
+            captures before using it in the optional benchmark estimate.
           </p>
         </div>
         <div className="mode-showcase">
@@ -161,22 +161,22 @@ export function HomePage() {
       <section className="section section-blue">
         <div className="score-story">
           <div>
-            <span className="eyebrow">Optional goal similarity</span>
-            <h2>A score you can take apart.</h2>
+            <span className="eyebrow">Optional benchmark estimate</span>
+            <h2>An x.x / 10 result you can take apart.</h2>
             <p>
-              Choose a balanced, angular, soft, or androgynous presentation
-              profile. MirrorMetric compares only the documented stable
-              measurements, shows each target band and weight, and excludes
-              metrics that did not repeat.
+              Adult men can explicitly opt in to a pooled SCUT-FBP5500
+              geometry estimate. MirrorMetric shows a 90% range, every
+              standardized input and coefficient, and withholds the result when
+              a required precision measurement is unstable.
             </p>
             <RouteLink className="text-link" to="/methodology#score">
               Read the complete score policy
             </RouteLink>
           </div>
-          <div className="score-specimen" aria-label="Example transparent score breakdown">
+          <div className="score-specimen" aria-label="Illustrative transparent benchmark score breakdown">
             <div className="score-ring">
-              <strong>82</strong>
-              <span>goal similarity</span>
+              <strong>7.2</strong>
+              <span>out of 10 · illustrative</span>
             </div>
             <ul>
               <li>
@@ -192,7 +192,10 @@ export function HomePage() {
                 <strong>Unstable · excluded</strong>
               </li>
             </ul>
-            <p>Not attractiveness. Not a percentile. Not inferred identity.</p>
+            <p>
+              Experimental benchmark estimate. Not a percentile, inferred
+              identity, or a U.S.-women-18–21 prediction.
+            </p>
           </div>
         </div>
       </section>

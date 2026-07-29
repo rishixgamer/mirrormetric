@@ -13,6 +13,7 @@
 | Vitest | `4.1.10` | MIT | test only |
 | Playwright | `1.55.1` | Apache-2.0 | test only |
 | Axe Core | `4.10.3` | MPL-2.0 | test only |
+| Optional attractiveness model pack | not bundled | Withheld pending redistribution confirmation | expected at `public/models/attractiveness/scut-male-geometry-v1.json` |
 
 Review upstream notices before redistribution:
 
@@ -27,9 +28,16 @@ Pinned binary hashes live in `checksums.txt` and are verified by `pnpm check`.
 | --- | --- | --- |
 | WFLW | 98-point landmark test set and difficult-condition subsets | Obtain from the official project under its terms; never commit images |
 | 300W | Landmark evaluation compatibility | Obtain from the official iBUG page under its terms; never commit images |
+| SCUT-FBP5500 | 86-point male-subset training and 1–5 ratings | Obtain from the official HCIILAB release; non-commercial research restriction; never commit images, annotations, ratings, or an unapproved derived pack |
 
 MirrorMetric includes parsers and aggregate metrics only. Dataset access rights
 do not flow from the MIT license.
+
+The application and training adapter remain MIT. A SCUT-derived pack does not
+become MIT merely because it is JSON. CI accepts a public pack only when its
+manifest records passing benchmark gates and confirmed redistribution, and
+when `VITE_ATTRACTIVENESS_MODEL_SHA256` exactly pins its bytes. Until then the
+runtime fails closed.
 
 ## Generated assets
 

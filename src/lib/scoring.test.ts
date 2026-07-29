@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { MeasurementResult } from "../domain/contracts";
-import { computeGoalScore, GOAL_PROFILES } from "./scoring";
+import type {
+  AttractivenessModelManifest,
+  MeasurementResult,
+} from "../domain/contracts";
+import {
+  computeAttractivenessScore,
+  REQUIRED_ATTRACTIVENESS_METRIC_IDS,
+} from "./scoring";
 
 function result(
   id: string,
@@ -21,7 +27,7 @@ function result(
     anchorIndices: [],
     version: "test",
     confidence: 90,
-    uncertainty: { lower: value - 0.01, upper: value + 0.01 },
+    uncertainty: { lower: value - 0.02, upper: value + 0.02 },
     sensitivityDelta: 0.01,
     stability,
     sampleCount: 3,
@@ -29,26 +35,147 @@ function result(
   };
 }
 
-describe("goal similarity", () => {
-  it("scores in-band values highly and exposes every component", () => {
-    const profile = GOAL_PROFILES[0];
-    const measurements = profile.targets.map((target) =>
-      result(
-        target.measurementId,
-        (target.minimum + target.maximum) / 2,
-      ),
+function model(
+  options: { intercept?: number; coefficient?: number } = {},
+): AttractivenessModelManifest {
+  return {
+    schemaVersion: 1,
+    modelVersion: "fixture-v1",
+    label: "experimental SCUT benchmark estimate",
+    intercept: options.intercept ?? 2,
+    features: REQUIRED_ATTRACTIVENESS_METRIC_IDS.map((measurementId) => ({
+      measurementId,
+      mean: 0,
+      standardDeviation: 1,
+      coefficient: options.coefficient ?? 0.1,
+    })),
+    validation: {
+      sampleCount: 100,
+      pearson: 0.7,
+      mae: 0.3,
+      rmse: 0.4,
+      absoluteErrorQuantile90: 0.5,
+      asianMaleMae: 0.4,
+      caucasianMaleMae: 0.4,
+      folds: 5,
+      nested: true,
+      seed: 20260729,
+      releaseEligible: true,
+    },
+    provenance: {
+      dataset: "SCUT-FBP5500",
+      datasetVersion: "release",
+      trainingSubsets: ["Asian male", "Caucasian male"],
+      targetPopulation:
+        "self-confirmed adult men; SCUT male-subset volunteer ratings; no audience-age segmentation",
+      trainingCodeVersion: "fixture",
+      regularization: {
+        method: "ridge",
+        selectedLambdas: [1, 1, 1, 1, 1],
+        finalLambda: 1,
+      },
+    },
+    license: {
+      code: "MIT",
+      modelPack: "SCUT non-commercial research terms",
+      notice: "Fixture only.",
+      redistributionConfirmed: true,
+    },
+    requiredMetricIds: REQUIRED_ATTRACTIVENESS_METRIC_IDS,
+  };
+}
+
+function completeMeasurements(
+  value: number,
+  stability: MeasurementResult["stability"] = "stable",
+) {
+  return REQUIRED_ATTRACTIVENESS_METRIC_IDS.map((id) =>
+    result(id, value, stability),
+  );
+}
+
+describe("experimental benchmark score", () => {
+  it("uses the exact standardized ridge arithmetic and exposes contributions", () => {
+    const score = computeAttractivenessScore(
+      completeMeasurements(1),
+      "precision",
+      model(),
+      "fixture-checksum",
     );
-    const score = computeGoalScore(measurements, "balanced");
-    expect(score.score).toBeCloseTo(100);
-    expect(score.components).toHaveLength(profile.targets.length);
-    expect(score.disclaimer).toMatch(/not attractiveness/i);
+    expect(score.status).toBe("available");
+    expect(score.rawScore).toBeCloseTo(3.3, 12);
+    expect(score.score).toBe(5.8);
+    expect(score.components).toHaveLength(13);
+    expect(
+      score.components.reduce(
+        (sum, component) => sum + component.contribution,
+        0,
+      ),
+    ).toBeCloseTo(1.3, 12);
+    expect(score.provenance.checksum).toBe("fixture-checksum");
+    expect(score.disclaimer).toMatch(/does not represent U\.S\. women/i);
   });
 
-  it("excludes unstable measurements", () => {
-    const score = computeGoalScore(
-      [result("face-aspect", 0.86, "unstable")],
-      "balanced",
+  it("clamps the raw prediction before mapping to zero through ten", () => {
+    expect(
+      computeAttractivenessScore(
+        completeMeasurements(1),
+        "quick",
+        model({ intercept: 9 }),
+      ).score,
+    ).toBe(10);
+    expect(
+      computeAttractivenessScore(
+        completeMeasurements(1),
+        "quick",
+        model({ intercept: -9 }),
+      ).score,
+    ).toBe(0);
+  });
+
+  it("combines held-out residual error with propagated input uncertainty", () => {
+    const score = computeAttractivenessScore(
+      completeMeasurements(1),
+      "precision",
+      model({ coefficient: 0.2 }),
     );
-    expect(score.components[0].included).toBe(false);
+    const expectedPropagation = Math.sqrt(13) * 0.2 * Math.hypot(0.02, 0.01);
+    expect(score.propagatedMeasurementUncertainty).toBeCloseTo(
+      expectedPropagation,
+      12,
+    );
+    expect(score.uncertainty?.lower).toBeLessThan(score.score ?? 0);
+    expect(score.uncertainty?.upper).toBeGreaterThan(score.score ?? 0);
+  });
+
+  it("withholds missing and non-finite required inputs", () => {
+    const missing = computeAttractivenessScore(
+      completeMeasurements(1).slice(1),
+      "quick",
+      model(),
+    );
+    expect(missing.status).toBe("withheld");
+    expect(missing.withheldReasons[0]).toMatch(/missing/i);
+
+    const nonFinite = completeMeasurements(1);
+    nonFinite[0] = result(REQUIRED_ATTRACTIVENESS_METRIC_IDS[0], Number.NaN);
+    expect(
+      computeAttractivenessScore(nonFinite, "quick", model()).withheldReasons[0],
+    ).toMatch(/non-finite/i);
+  });
+
+  it("withholds unstable precision inputs but permits single-capture scoring", () => {
+    const inputs = completeMeasurements(1);
+    inputs[0] = result(
+      REQUIRED_ATTRACTIVENESS_METRIC_IDS[0],
+      1,
+      "unstable",
+    );
+    expect(
+      computeAttractivenessScore(inputs, "precision", model()).status,
+    ).toBe("withheld");
+    expect(computeAttractivenessScore(inputs, "quick", model()).status).toBe(
+      "available",
+    );
   });
 });

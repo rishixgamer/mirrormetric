@@ -30,7 +30,7 @@ function measurement(
 
 describe("guidance safety rules", () => {
   it("explains unstable and low-confidence triggers", () => {
-    const guidance = buildGuidance([measurement("unstable", 60)], "soft");
+    const guidance = buildGuidance([measurement("unstable", 60)]);
     expect(guidance.find((item) => item.id === "repeatable-capture")?.why).toMatch(
       /unstable/i,
     );
@@ -38,7 +38,7 @@ describe("guidance safety rules", () => {
   });
 
   it("keeps clinical material universal and non-personalized", () => {
-    const guidance = buildGuidance([measurement("stable", 95)], "balanced");
+    const guidance = buildGuidance([measurement("stable", 95)]);
     const professional = guidance.filter(
       (item) => item.evidenceLevel === "professional-education",
     );

@@ -5,12 +5,11 @@ import type {
   AnalysisSession,
   CaptureAnalysis,
   CaptureAssessment,
-  GoalProfileId,
 } from "../domain/contracts";
+import { loadAttractivenessModel } from "../lib/attractiveness-model";
 import { captureFailureMessage } from "../lib/capture-assessment";
 import { evaluateCapture } from "../lib/capture-evaluation";
 import { computeMeasurements } from "../lib/measurement-engine";
-import { GOAL_PROFILES } from "../lib/scoring";
 import { createAnalysisSession } from "../lib/session";
 import { navigate, useDocumentMeta } from "../router";
 
@@ -63,8 +62,7 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
   const [permissionConfirmed, setPermissionConfirmed] = useState(false);
   const [limitsConfirmed, setLimitsConfirmed] = useState(false);
   const [scoreEnabled, setScoreEnabled] = useState(false);
-  const [goalProfileId, setGoalProfileId] =
-    useState<GoalProfileId>("balanced");
+  const [adultManConfirmed, setAdultManConfirmed] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
@@ -72,7 +70,6 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
   const [reports, setReports] = useState<
     Array<{ fileName: string; assessment: CaptureAssessment }>
   >([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const captureSetupRef = useRef<HTMLDivElement>(null);
   const captureReportRef = useRef<HTMLElement>(null);
 
@@ -80,7 +77,10 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
   const consentsComplete =
     adultConfirmed && permissionConfirmed && limitsConfirmed;
   const canAnalyze =
-    consentsComplete && files.length === requiredCount && !busy;
+    consentsComplete &&
+    (!scoreEnabled || adultManConfirmed) &&
+    files.length === requiredCount &&
+    !busy;
 
   useEffect(() => {
     if (!reports.some((report) => !report.assessment.accepted)) return;
@@ -186,11 +186,36 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
         return;
       }
       setStatus("Aggregating measurements and uncertainty…");
-      const session = createAnalysisSession(
-        mode,
-        completed,
-        scoreEnabled ? goalProfileId : undefined,
-      );
+      let scoreRequest:
+        | { requested: false }
+        | {
+            requested: true;
+            model?: Awaited<
+              ReturnType<typeof loadAttractivenessModel>
+            >["manifest"];
+            checksum?: string;
+            modelError?: string;
+          } = { requested: false };
+      if (scoreEnabled) {
+        setStatus("Loading and verifying the optional benchmark model…");
+        try {
+          const loaded = await loadAttractivenessModel();
+          scoreRequest = {
+            requested: true,
+            model: loaded.manifest,
+            checksum: loaded.checksum,
+          };
+        } catch (caught) {
+          scoreRequest = {
+            requested: true,
+            modelError:
+              caught instanceof Error
+                ? caught.message
+                : "The optional benchmark model is unavailable.",
+          };
+        }
+      }
+      const session = createAnalysisSession(mode, completed, scoreRequest);
       onComplete(session, files);
       navigate("/results");
     } catch (caught) {
@@ -284,18 +309,18 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
           >
             <strong>Drop a front photo here</strong>
             <span>JPEG, PNG, or WebP · up to 12 MB · 720 px minimum</span>
-            <button
-              className="button button-dark"
-              type="button"
-              disabled={files.length >= requiredCount}
-              onClick={() => fileInputRef.current?.click()}
+            <label
+              className={`button button-dark${files.length >= requiredCount ? " button-disabled" : ""}`}
+              htmlFor="capture-file"
+              aria-disabled={files.length >= requiredCount}
             >
               Choose a photo
-            </button>
+            </label>
             <input
-              ref={fileInputRef}
+              id="capture-file"
               className="visually-hidden-input"
               type="file"
+              disabled={files.length >= requiredCount}
               accept="image/jpeg,image/png,image/webp"
               onChange={(event) => {
                 const file = event.target.files?.[0];
@@ -358,7 +383,8 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
               </span>
             </label>
           </fieldset>
-          <div className="score-opt-in">
+          <fieldset className="score-opt-in">
+            <legend>Optional experimental benchmark score</legend>
             <label>
               <input
                 type="checkbox"
@@ -366,29 +392,35 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
                 onChange={(event) => setScoreEnabled(event.target.checked)}
               />
               <span>
-                <strong>Enable optional goal similarity</strong>
-                Raw measurements remain the primary result.
+                <strong>Show an experimental attractiveness estimate</strong>
+                Load a separately versioned geometry model after this opt-in
+                and display an x.x / 10 estimate with a 90% range.
               </span>
             </label>
             {scoreEnabled && (
-              <label className="goal-select" htmlFor="goal-profile">
-                <span>Chosen presentation goal</span>
-                <select
-                  id="goal-profile"
-                  value={goalProfileId}
+              <label>
+                <input
+                  type="checkbox"
+                  checked={adultManConfirmed}
                   onChange={(event) =>
-                    setGoalProfileId(event.target.value as GoalProfileId)
+                    setAdultManConfirmed(event.target.checked)
                   }
-                >
-                  {GOAL_PROFILES.map((profile) => (
-                    <option key={profile.id} value={profile.id}>
-                      {profile.label}
-                    </option>
-                  ))}
-                </select>
+                />
+                <span>
+                  <strong>I confirm the subject is an adult man.</strong>
+                  MirrorMetric does not infer sex, gender, age, ethnicity, or
+                  identity from the photo. This eligibility confirmation is
+                  required because the planned benchmark uses SCUT male subsets.
+                </span>
               </label>
             )}
-          </div>
+            <p>
+              This is a pooled SCUT benchmark estimate, not a prediction of what
+              U.S. women ages 18–21 find attractive. If no redistribution-cleared
+              model is present, the score is withheld while raw measurements
+              still complete.
+            </p>
+          </fieldset>
           <div className="analyze-action">
             <div>
               <strong>Nothing is uploaded.</strong>

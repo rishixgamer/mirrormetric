@@ -1,10 +1,11 @@
 import type { LandmarkSet } from "./landmarks";
 
-export const ANALYSIS_SCHEMA_VERSION = 1;
+export const ANALYSIS_SCHEMA_VERSION = 2;
 export const DETECTION_SCHEMA_VERSION = 1;
 export const CAPTURE_SCHEMA_VERSION = 1;
 export const MEASUREMENT_CATALOG_VERSION = "1.0.0-beta.1";
-export const SCORE_MODEL_VERSION = "goal-similarity-1";
+export const SCORE_MODEL_VERSION = "scut-male-geometry-1";
+export const LEGACY_SCORE_MODEL_VERSION = "goal-similarity-1";
 export const GUIDANCE_SCHEMA_VERSION = "guidance-1";
 export const HISTORY_EXPORT_SCHEMA_VERSION = 1;
 
@@ -12,7 +13,12 @@ export type AnalysisMode = "quick" | "precision";
 export type MeasurementUnit = "ratio" | "percent" | "degrees";
 export type Sensitivity = "low" | "medium" | "high";
 export type MeasurementStability = "single-capture" | "stable" | "unstable";
-export type GoalProfileId = "balanced" | "angular" | "soft" | "androgynous";
+export type LegacyGoalProfileId =
+  | "balanced"
+  | "angular"
+  | "soft"
+  | "androgynous";
+export type AttractivenessScoreStatus = "available" | "withheld";
 
 export interface PoseEstimate {
   readonly yaw: number;
@@ -91,7 +97,7 @@ export interface CaptureAnalysis {
   readonly measurements: ReadonlyArray<MeasurementResult>;
 }
 
-export interface GoalMetricTarget {
+export interface LegacyGoalMetricTarget {
   readonly measurementId: string;
   readonly minimum: number;
   readonly maximum: number;
@@ -99,16 +105,16 @@ export interface GoalMetricTarget {
   readonly rationale: string;
 }
 
-export interface GoalProfile {
-  readonly version: typeof SCORE_MODEL_VERSION;
-  readonly id: GoalProfileId;
+export interface LegacyGoalProfile {
+  readonly version: typeof LEGACY_SCORE_MODEL_VERSION;
+  readonly id: LegacyGoalProfileId;
   readonly label: string;
   readonly description: string;
   readonly caveat: string;
-  readonly targets: ReadonlyArray<GoalMetricTarget>;
+  readonly targets: ReadonlyArray<LegacyGoalMetricTarget>;
 }
 
-export interface ScoreComponent {
+export interface LegacyScoreComponent {
   readonly measurementId: string;
   readonly label: string;
   readonly value: number;
@@ -120,13 +126,99 @@ export interface ScoreComponent {
   readonly reason: string;
 }
 
-export interface GoalScoreResult {
+export interface LegacyGoalScoreResult {
   readonly version: string;
-  readonly profileId: GoalProfileId;
+  readonly profileId: LegacyGoalProfileId;
   readonly score: number;
   readonly confidence: number;
   readonly uncertainty: UncertaintyInterval;
-  readonly components: ReadonlyArray<ScoreComponent>;
+  readonly components: ReadonlyArray<LegacyScoreComponent>;
+  readonly disclaimer: string;
+}
+
+export interface AttractivenessModelFeature {
+  readonly measurementId: string;
+  readonly mean: number;
+  readonly standardDeviation: number;
+  readonly coefficient: number;
+}
+
+export interface AttractivenessValidationResults {
+  readonly sampleCount: number;
+  readonly pearson: number;
+  readonly mae: number;
+  readonly rmse: number;
+  readonly absoluteErrorQuantile90: number;
+  readonly asianMaleMae: number;
+  readonly caucasianMaleMae: number;
+  readonly folds: 5;
+  readonly nested: true;
+  readonly seed: number;
+  readonly releaseEligible: boolean;
+}
+
+export interface AttractivenessModelManifest {
+  readonly schemaVersion: 1;
+  readonly modelVersion: string;
+  readonly label: "experimental SCUT benchmark estimate";
+  readonly intercept: number;
+  readonly features: ReadonlyArray<AttractivenessModelFeature>;
+  readonly validation: AttractivenessValidationResults;
+  readonly provenance: {
+    readonly dataset: "SCUT-FBP5500";
+    readonly datasetVersion: string;
+    readonly trainingSubsets: ReadonlyArray<"Asian male" | "Caucasian male">;
+    readonly targetPopulation:
+      "self-confirmed adult men; SCUT male-subset volunteer ratings; no audience-age segmentation";
+    readonly trainingCodeVersion: string;
+    readonly regularization: {
+      readonly method: "ridge";
+      readonly selectedLambdas: ReadonlyArray<number>;
+      readonly finalLambda: number;
+    };
+  };
+  readonly license: {
+    readonly code: "MIT";
+    readonly modelPack: string;
+    readonly notice: string;
+    readonly redistributionConfirmed: boolean;
+  };
+  readonly requiredMetricIds: ReadonlyArray<string>;
+}
+
+export interface AttractivenessScoreComponent {
+  readonly measurementId: string;
+  readonly label: string;
+  readonly value: number;
+  readonly mean: number;
+  readonly standardDeviation: number;
+  readonly standardizedValue: number;
+  readonly coefficient: number;
+  readonly contribution: number;
+  readonly included: boolean;
+  readonly reason: string;
+}
+
+export interface AttractivenessScoreResult {
+  readonly version: string;
+  readonly status: AttractivenessScoreStatus;
+  readonly score?: number;
+  readonly rawScore?: number;
+  readonly inputConfidence: number;
+  readonly uncertainty?: UncertaintyInterval;
+  readonly propagatedMeasurementUncertainty?: number;
+  readonly components: ReadonlyArray<AttractivenessScoreComponent>;
+  readonly withheldReasons: ReadonlyArray<string>;
+  readonly provenance: {
+    readonly label: "experimental SCUT benchmark estimate";
+    readonly modelVersion: string;
+    readonly dataset: "SCUT-FBP5500";
+    readonly targetPopulation:
+      "self-confirmed adult men; SCUT male-subset volunteer ratings; no audience-age segmentation";
+    readonly validation?: AttractivenessValidationResults;
+    readonly checksum?: string;
+    readonly licenseNotice: string;
+  };
   readonly disclaimer: string;
 }
 
@@ -156,8 +248,11 @@ export interface AnalysisSession {
   readonly measurementCatalogVersion: string;
   readonly captures: ReadonlyArray<CaptureAnalysis>;
   readonly measurements: ReadonlyArray<MeasurementResult>;
-  readonly goalProfileId?: GoalProfileId;
-  readonly score?: GoalScoreResult;
+  readonly scoreRequested: boolean;
+  readonly attractivenessScore?: AttractivenessScoreResult;
+  readonly attractivenessModel?: AttractivenessModelManifest;
+  readonly legacyGoalProfileId?: LegacyGoalProfileId;
+  readonly legacyGoalScore?: LegacyGoalScoreResult;
   readonly guidance: ReadonlyArray<GuidanceItem>;
 }
 

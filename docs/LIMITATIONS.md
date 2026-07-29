@@ -13,7 +13,15 @@
 - Manual correction can introduce user error.
 - Precision mode estimates within-session variation from three captures; it
   does not establish day-to-day or camera-to-camera repeatability.
-- Goal profiles are subjective, unvalidated style hypotheses.
+- The optional score is a pooled SCUT benchmark estimate, not an objective
+  standard or a model of U.S. women ages 18–21.
+- SCUT's rating audience is not segmented to the requested cohort, and its
+  subject composition is not equivalent to the app's adult-only eligibility.
+- Mapping SCUT's 86-point topology to MediaPipe anchors introduces
+  cross-topology error in addition to photo and landmark error.
+- A 0–10 linear conversion adds familiarity, not validation or precision.
+- No production SCUT-derived pack is bundled until redistribution rights are
+  confirmed; score withholding is expected in this build.
 - Guidance is not evidence that changing appearance improves wellbeing or any
   other outcome.
 - Professional links are general education and never personalized treatment
@@ -21,7 +29,8 @@
 - Local encryption cannot recover a forgotten passphrase and cannot secure a
   compromised or already-unlocked device.
 - WCAG automation cannot prove usability for every assistive technology.
-- The real WFLW/300W detector baseline and participant study remain incomplete.
+- The real WFLW/300W detector baseline, SCUT model report, and participant
+  study remain incomplete.
 
 Do not use the product for medical, identity, employment, insurance, education,
 credit, housing, law-enforcement, or other high-stakes decisions.

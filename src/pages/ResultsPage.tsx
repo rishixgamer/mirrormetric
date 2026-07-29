@@ -3,15 +3,13 @@ import { LandmarkEditor } from "../components/LandmarkEditor";
 import type {
   AnalysisSession,
   CaptureAnalysis,
-  GoalProfileId,
 } from "../domain/contracts";
 import { downloadJson, saveSession } from "../lib/history";
 import {
   formatMeasurement,
   formatUncertainty,
 } from "../lib/measurement-engine";
-import { GOAL_PROFILES, getGoalProfile } from "../lib/scoring";
-import { replaceCapture, updateSessionGoal } from "../lib/session";
+import { replaceCapture } from "../lib/session";
 import { RouteLink, useDocumentMeta } from "../router";
 
 interface ResultsPageProps {
@@ -27,10 +25,8 @@ export function ResultsPage({
 }: ResultsPageProps) {
   useDocumentMeta(
     "Analysis results",
-    "Review transparent facial measurements, uncertainty, stability, goal similarity, and reversible guidance.",
+    "Review transparent facial measurements, uncertainty, stability, an optional experimental benchmark estimate, and reversible guidance.",
   );
-  const [goalChoice, setGoalChoice] =
-    useState<GoalProfileId>(session?.goalProfileId ?? "balanced");
   const [editorCapture, setEditorCapture] = useState<number>();
   const [passphrase, setPassphrase] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
@@ -77,10 +73,6 @@ export function ResultsPage({
         error instanceof Error ? error.message : "Could not save local history.",
       );
     }
-  }
-
-  function applyGoal() {
-    onUpdate(updateSessionGoal(activeSession, goalChoice));
   }
 
   function applyCorrection(captureIndex: number, capture: CaptureAnalysis) {
@@ -141,6 +133,118 @@ export function ResultsPage({
           New scan
         </RouteLink>
       </section>
+
+      {session.scoreRequested && session.attractivenessScore && (
+        <section
+          className="section score-section benchmark-score-section"
+          id="benchmark-score"
+          aria-labelledby="benchmark-score-title"
+        >
+          <div className="score-control">
+            <div>
+              <span className="eyebrow">Optional subjective summary</span>
+              <h2 id="benchmark-score-title">Experimental benchmark estimate</h2>
+              <p>
+                A transparent ridge-regression result based on the pooled
+                SCUT-FBP5500 male subsets. It does not infer demographics and
+                does not represent U.S. women ages 18–21.
+              </p>
+            </div>
+            <div className="goal-control-box">
+              <span>Model version</span>
+              <strong>{session.attractivenessScore.version}</strong>
+              <span>
+                Input quality{" "}
+                {session.attractivenessScore.inputConfidence.toFixed(0)}%
+              </span>
+            </div>
+          </div>
+
+          {session.attractivenessScore.status === "available" &&
+          session.attractivenessScore.score !== undefined &&
+          session.attractivenessScore.uncertainty ? (
+            <div className="score-results">
+              <div
+                className="score-total"
+                role="group"
+                aria-label={`${session.attractivenessScore.score.toFixed(1)} out of 10, 90 percent range ${session.attractivenessScore.uncertainty.lower.toFixed(1)} to ${session.attractivenessScore.uncertainty.upper.toFixed(1)}, experimental benchmark estimate`}
+              >
+                <span>Experimental SCUT benchmark estimate</span>
+                <strong>
+                  {session.attractivenessScore.score.toFixed(1)}
+                  <small> / 10</small>
+                </strong>
+                <p>
+                  90% range{" "}
+                  {session.attractivenessScore.uncertainty.lower.toFixed(1)}–
+                  {session.attractivenessScore.uncertainty.upper.toFixed(1)} ·{" "}
+                  {session.attractivenessScore.inputConfidence.toFixed(0)}%
+                  input quality
+                </p>
+                <small>{session.attractivenessScore.disclaimer}</small>
+              </div>
+              <div className="score-breakdown">
+                <h3>Inspect every model contribution</h3>
+                {session.attractivenessScore.components.map((component) => (
+                  <article key={component.measurementId}>
+                    <div>
+                      <strong>{component.label}</strong>
+                      <span>
+                        Input {component.value.toFixed(4)} · training mean{" "}
+                        {component.mean.toFixed(4)} · SD{" "}
+                        {component.standardDeviation.toFixed(4)} · standardized{" "}
+                        {component.standardizedValue.toFixed(4)}
+                      </span>
+                    </div>
+                    <span>
+                      coefficient {component.coefficient.toFixed(6)} ·
+                      contribution {component.contribution.toFixed(6)}
+                    </span>
+                    <p>{component.reason}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="alert alert-warning benchmark-withheld" role="status">
+              <strong>Score withheld</strong>
+              <p>
+                MirrorMetric will not estimate a score without a verified model
+                pack and every stable, finite required input.
+              </p>
+              <ul>
+                {session.attractivenessScore.withheldReasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+              <small>{session.attractivenessScore.disclaimer}</small>
+            </div>
+          )}
+          {session.attractivenessScore.status === "withheld" &&
+            session.attractivenessScore.components.length > 0 && (
+              <div className="score-breakdown withheld-breakdown">
+                <h3>Inspect every required model input</h3>
+                {session.attractivenessScore.components.map((component) => (
+                  <article key={component.measurementId}>
+                    <div>
+                      <strong>{component.label}</strong>
+                      <span>
+                        {component.included
+                          ? `Input ${component.value.toFixed(4)} · mean ${component.mean.toFixed(4)} · SD ${component.standardDeviation.toFixed(4)} · standardized ${component.standardizedValue.toFixed(4)}`
+                          : "Required input excluded"}
+                      </span>
+                    </div>
+                    <span>
+                      coefficient {component.coefficient.toFixed(6)} ·
+                      contribution {component.contribution.toFixed(6)}
+                    </span>
+                    <p>{component.reason}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+        </section>
+      )}
 
       {sourceFiles.length > 0 && (
         <section className="correction-strip">
@@ -262,84 +366,26 @@ export function ResultsPage({
         ))}
       </section>
 
-      <section className="section score-section" id="goal-score">
-        <div className="score-control">
-          <div>
-            <span className="eyebrow">Optional subjective summary</span>
-            <h2>Goal similarity</h2>
+      {session.legacyGoalScore && (
+        <section className="section score-section legacy-score-section">
+          <span className="eyebrow">Read-only migrated record</span>
+          <h2>Legacy goal similarity</h2>
+          <p>
+            This v1 result is preserved exactly as saved and is never
+            recomputed under the benchmark model.
+          </p>
+          <div className="score-total">
+            <span>{session.legacyGoalProfileId ?? "Saved"} profile</span>
+            <strong>{session.legacyGoalScore.score.toFixed(0)}</strong>
             <p>
-              Choose a presentation profile yourself. No identity is inferred,
-              and unstable measurements are automatically excluded.
+              Legacy range{" "}
+              {session.legacyGoalScore.uncertainty.lower.toFixed(0)}–
+              {session.legacyGoalScore.uncertainty.upper.toFixed(0)}
             </p>
+            <small>{session.legacyGoalScore.disclaimer}</small>
           </div>
-          <div className="goal-control-box">
-            <label htmlFor="result-goal">Presentation goal</label>
-            <select
-              id="result-goal"
-              value={goalChoice}
-              onChange={(event) =>
-                setGoalChoice(event.target.value as GoalProfileId)
-              }
-            >
-              {GOAL_PROFILES.map((profile) => (
-                <option value={profile.id} key={profile.id}>
-                  {profile.label}
-                </option>
-              ))}
-            </select>
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={applyGoal}
-            >
-              {session.score ? "Update goal score" : "Enable goal score"}
-            </button>
-            {session.score && (
-              <button
-                className="text-button"
-                type="button"
-                onClick={() => onUpdate(updateSessionGoal(session, undefined))}
-              >
-                Remove score
-              </button>
-            )}
-          </div>
-        </div>
-
-        {session.score && (
-          <div className="score-results">
-            <div className="score-total">
-              <span>{getGoalProfile(session.score.profileId).label} profile</span>
-              <strong>{session.score.score.toFixed(0)}</strong>
-              <p>
-                Range {session.score.uncertainty.lower.toFixed(0)}–
-                {session.score.uncertainty.upper.toFixed(0)} ·{" "}
-                {session.score.confidence.toFixed(0)}% input confidence
-              </p>
-              <small>{session.score.disclaimer}</small>
-            </div>
-            <div className="score-breakdown">
-              {session.score.components.map((component) => (
-                <article key={component.measurementId}>
-                  <div>
-                    <strong>{component.label}</strong>
-                    <span>
-                      Target {component.targetMinimum.toFixed(2)}–
-                      {component.targetMaximum.toFixed(2)}
-                    </span>
-                  </div>
-                  <span>
-                    {component.included
-                      ? `${component.similarity.toFixed(0)} similarity`
-                      : "Excluded"}
-                  </span>
-                  <p>{component.reason}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="section guidance-section">
         <div className="section-intro">

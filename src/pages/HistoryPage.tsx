@@ -162,9 +162,14 @@ export function HistoryPage({ onOpen }: HistoryPageProps) {
                       <span className="status-pill">{session.mode}</span>
                     </div>
                     <h3>
-                      {session.score
-                        ? `${session.score.score.toFixed(0)} ${session.goalProfileId} similarity`
-                        : "Raw measurement record"}
+                      {session.attractivenessScore?.status === "available" &&
+                      session.attractivenessScore.score !== undefined
+                        ? `${session.attractivenessScore.score.toFixed(1)} / 10 experimental benchmark estimate`
+                        : session.legacyGoalScore
+                          ? `${session.legacyGoalScore.score.toFixed(0)} legacy goal similarity`
+                          : session.scoreRequested
+                            ? "Benchmark score withheld"
+                            : "Raw measurement record"}
                     </h3>
                     <dl>
                       <div>

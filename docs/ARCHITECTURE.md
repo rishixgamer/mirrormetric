@@ -25,16 +25,21 @@ strict capture assessment ──► reject or accept
    │
    ├── raw result cards and correction editor
    ├── three-capture median/stability aggregation
-   ├── optional transparent goal similarity
+   ├── optional lazy checksum-verified benchmark ridge score
    └── opt-in encrypted IndexedDB history / local exports
 ```
 
 ## Public contracts
 
 `src/domain/contracts.ts` versions detector, capture, measurement-catalogue,
-analysis-session, goal-score, guidance, encrypted-envelope, and encrypted
+analysis-session, attractiveness-score, model-manifest, legacy-goal-score,
+guidance, encrypted-envelope, and encrypted
 export shapes. Schema migrations are fail-closed; unknown future versions are
 not silently interpreted.
+
+Schema version 2 preserves schema-one goal scores as read-only legacy fields.
+New sessions contain no goal profile. Corrections recompute a benchmark score
+only from the exact manifest stored with the active result.
 
 ## Inference boundary
 
@@ -43,6 +48,15 @@ It requests two same-origin resources: the pinned task model and pinned
 WebAssembly runtime. The production content-security policy limits connections
 to the same origin. The source image is transferred as an `ImageBitmap`, never
 serialized into a network request, and closed after inference.
+
+## Optional score-model boundary
+
+The 13-feature model is absent from the initial JavaScript. After score opt-in,
+the browser performs a same-origin GET, verifies its bytes against
+`VITE_ATTRACTIVENESS_MODEL_SHA256`, validates feature order, provenance,
+license, and release gates, then computes locally. The service worker may cache
+the verified response for offline reuse. Missing, invalid, unstable, or
+unlicensed inputs produce a withheld result.
 
 ## Local storage
 
@@ -59,8 +73,9 @@ the passphrase makes the record unrecoverable.
 ## Offline and deployment
 
 The service worker precaches only the application shell. Versioned JavaScript,
-CSS, inference worker, model, and WASM are cached on first request, keeping the
-large engine lazy. Immutable assets receive one-year cache headers. HTML,
+CSS, inference worker, landmark model, optional score model, and WASM are
+cached on first request, keeping both engines lazy. Immutable assets receive
+one-year cache headers. HTML,
 robots, and sitemap responses receive a restrictive CSP, permissions policy,
 referrer policy, frame denial, and content-type protection.
 

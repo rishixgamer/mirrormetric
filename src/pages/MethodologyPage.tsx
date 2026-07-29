@@ -1,12 +1,12 @@
 import { MEASUREMENT_CATALOG_VERSION } from "../domain/contracts";
 import { MEASUREMENT_DEFINITIONS } from "../lib/measurement-engine";
-import { GOAL_PROFILES } from "../lib/scoring";
+import { REQUIRED_ATTRACTIVENESS_METRIC_IDS } from "../lib/scoring";
 import { useDocumentMeta } from "../router";
 
 export function MethodologyPage() {
   useDocumentMeta(
     "Accuracy and methodology",
-    "How MirrorMetric handles capture quality, repeatability, landmark correction, uncertainty, and subjective goal similarity.",
+    "How MirrorMetric handles capture quality, repeatability, landmark correction, uncertainty, and the optional experimental SCUT benchmark estimate.",
   );
   const categories = [...new Set(MEASUREMENT_DEFINITIONS.map((item) => item.category))];
 
@@ -95,23 +95,31 @@ export function MethodologyPage() {
       <section className="section section-blue" id="score">
         <div className="section-intro">
           <span className="eyebrow">Score policy</span>
-          <h2>Similarity to a chosen style—not beauty.</h2>
+          <h2>A reproducible estimate with a deliberately narrow claim.</h2>
           <p>
-            Component similarity is 100 inside the selected target band and
-            decays continuously outside it. Stable components are combined by
-            visible weights. The profile is chosen by the user and never
-            inferred from gender or ethnicity.
+            After explicit opt-in and an adult-man confirmation, a separately
+            downloaded ridge model combines 13 standardized measurements. The
+            raw 1–5 SCUT estimate is clamped, mapped linearly to 0–10, and shown
+            with a 90% error range. Every input, coefficient, contribution, and
+            exclusion reason remains visible.
           </p>
         </div>
         <div className="profile-grid">
-          {GOAL_PROFILES.map((profile) => (
-            <article key={profile.id}>
-              <h3>{profile.label}</h3>
-              <p>{profile.description}</p>
-              <strong>{profile.targets.length} visible components</strong>
-              <small>{profile.caveat}</small>
+          {REQUIRED_ATTRACTIVENESS_METRIC_IDS.map((measurementId) => (
+            <article key={measurementId}>
+              <h3>{measurementId}</h3>
+              <p>Cross-topology geometry input standardized by training mean and standard deviation.</p>
+              <small>Required, finite, and stable in precision mode.</small>
             </article>
           ))}
+        </div>
+        <div className="benchmark-banner">
+          <strong>Claim boundary</strong>
+          <p>
+            SCUT-FBP5500 contains pooled volunteer ratings and does not provide
+            a U.S.-women-ages-18–21 segment. The estimate is not a percentile,
+            demographic inference, objective standard, or source of advice.
+          </p>
         </div>
       </section>
 
@@ -119,22 +127,22 @@ export function MethodologyPage() {
         <div className="section-intro split-intro">
           <div>
             <span className="eyebrow">Benchmark status</span>
-            <h2>Reproducible harness ready; human validation remains.</h2>
+            <h2>Release gates come before a public model pack.</h2>
           </div>
           <p>
-            The repository includes adapters for WFLW and 300W-style
-            annotations and reports normalized mean error, AUC, failure rate,
-            and difficult-condition subsets without redistributing source
-            photographs.
+            The repository includes an SCUT 86-point adapter, deterministic
+            fixtures, nested five-fold ridge validation, and aggregate Pearson,
+            MAE, RMSE, 90% absolute-error, Asian-male, and Caucasian-male
+            results—without redistributing restricted source data.
           </p>
         </div>
         <div className="benchmark-banner">
           <strong>Beta limitation</strong>
           <p>
-            A non-experimental release still requires consenting participants,
-            repeated sessions on multiple camera families, independent
-            annotation, and subgroup uncertainty. Until then, results remain
-            explicitly experimental.
+            A model releases only at Pearson ≥ 0.60, MAE ≤ 0.45, RMSE ≤ 0.60,
+            and subset MAE ≤ 1.5× pooled MAE. Redistribution rights must also
+            be confirmed. Otherwise model loading fails closed and raw
+            measurements remain available.
           </p>
         </div>
       </section>

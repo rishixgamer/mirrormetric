@@ -39,6 +39,13 @@ export function PrivacyPage() {
         use a separate, explicit consent flow and cannot silently activate in
         this application.
       </p>
+      <h2>Optional benchmark model</h2>
+      <p>
+        The score model is requested only after explicit opt-in, using a
+        same-origin GET with no photograph, landmark, measurement, or result
+        data in a request body. The response is checked against a build-pinned
+        SHA-256 digest and may be cached for offline use.
+      </p>
       <h2>Security limits</h2>
       <p>
         Device-local does not mean invulnerable. Someone with access to your
@@ -70,16 +77,18 @@ export function TermsPage() {
       </p>
       <h2>No medical or professional advice</h2>
       <p>
-        Measurements, goal profiles, and educational links are not diagnoses,
-        treatment recommendations, predictions of surgical outcome, or
-        substitutes for a qualified professional. Procedures are never ranked
-        for an individual.
+        Measurements, the optional benchmark estimate, and educational links
+        are not diagnoses, treatment recommendations, predictions of surgical
+        outcome, or substitutes for a qualified professional. Procedures are
+        never ranked for an individual.
       </p>
       <h2>No objective beauty claim</h2>
       <p>
-        Goal similarity reflects project-defined, subjective style bands. It
-        does not measure attractiveness, health, character, identity, gender,
-        ethnicity, social value, or personal worth.
+        The optional score is an experimental pooled SCUT-FBP5500 benchmark
+        estimate for self-confirmed adult men. It does not represent U.S. women
+        ages 18–21 and does not measure objective attractiveness, health,
+        character, identity, gender, ethnicity, social value, or personal
+        worth. It is not a percentile.
       </p>
       <h2>Prohibited use</h2>
       <p>
@@ -107,9 +116,9 @@ export function OpenSourcePage() {
         <span className="eyebrow">MIT licensed</span>
         <h1>Fork the formulas. Challenge the benchmark. Improve the tool.</h1>
         <p>
-          The application, measurement catalogue, goal-profile manifests,
-          tests, benchmark adapters, privacy boundary, and release notes live
-          together. Accuracy is never a premium tier.
+          The application, measurement catalogue, model-pack schema, training
+          adapter, tests, privacy boundary, and release notes live together.
+          Accuracy is never a premium tier.
         </p>
         <a
           className="button button-primary"

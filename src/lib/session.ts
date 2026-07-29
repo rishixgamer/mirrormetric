@@ -3,23 +3,42 @@ import {
   MEASUREMENT_CATALOG_VERSION,
   type AnalysisMode,
   type AnalysisSession,
+  type AttractivenessModelManifest,
   type CaptureAnalysis,
-  type GoalProfileId,
 } from "../domain/contracts";
 import { aggregateMeasurements } from "./aggregation";
 import { buildGuidance } from "./guidance";
-import { computeGoalScore } from "./scoring";
+import {
+  computeAttractivenessScore,
+  createWithheldAttractivenessScore,
+} from "./scoring";
+
+export interface ScoreRequest {
+  readonly requested: boolean;
+  readonly model?: AttractivenessModelManifest;
+  readonly checksum?: string;
+  readonly modelError?: string;
+}
 
 export function createAnalysisSession(
   mode: AnalysisMode,
   captures: ReadonlyArray<CaptureAnalysis>,
-  goalProfileId?: GoalProfileId,
+  scoreRequest: ScoreRequest = { requested: false },
 ): AnalysisSession {
   const measurements = aggregateMeasurements(
     captures.map((capture) => capture.measurements),
   );
-  const score = goalProfileId
-    ? computeGoalScore(measurements, goalProfileId)
+  const attractivenessScore = scoreRequest.requested
+    ? scoreRequest.model
+      ? computeAttractivenessScore(
+          measurements,
+          mode,
+          scoreRequest.model,
+          scoreRequest.checksum,
+        )
+      : createWithheldAttractivenessScore(
+          scoreRequest.modelError ?? "The optional benchmark model is unavailable.",
+        )
     : undefined;
   return {
     schemaVersion: ANALYSIS_SCHEMA_VERSION,
@@ -29,29 +48,10 @@ export function createAnalysisSession(
     measurementCatalogVersion: MEASUREMENT_CATALOG_VERSION,
     captures,
     measurements,
-    goalProfileId,
-    score,
-    guidance: buildGuidance(
-      measurements,
-      goalProfileId ?? "balanced",
-    ),
-  };
-}
-
-export function updateSessionGoal(
-  session: AnalysisSession,
-  goalProfileId: GoalProfileId | undefined,
-): AnalysisSession {
-  return {
-    ...session,
-    goalProfileId,
-    score: goalProfileId
-      ? computeGoalScore(session.measurements, goalProfileId)
-      : undefined,
-    guidance: buildGuidance(
-      session.measurements,
-      goalProfileId ?? "balanced",
-    ),
+    scoreRequested: scoreRequest.requested,
+    attractivenessScore,
+    attractivenessModel: scoreRequest.model,
+    guidance: buildGuidance(measurements),
   };
 }
 
@@ -70,13 +70,17 @@ export function replaceCapture(
     ...session,
     captures,
     measurements,
-    score: session.goalProfileId
-      ? computeGoalScore(measurements, session.goalProfileId)
+    attractivenessScore: session.scoreRequested
+      ? session.attractivenessModel
+        ? computeAttractivenessScore(
+            measurements,
+            session.mode,
+            session.attractivenessModel,
+            session.attractivenessScore?.provenance.checksum,
+          )
+        : session.attractivenessScore
       : undefined,
-    guidance: buildGuidance(
-      measurements,
-      session.goalProfileId ?? "balanced",
-    ),
+    guidance: buildGuidance(measurements),
   };
 }
 
@@ -86,7 +90,11 @@ export function migrateAnalysisSession(value: unknown): AnalysisSession {
   }
   const candidate = value as Record<string, unknown>;
   const schemaVersion = candidate.schemaVersion;
-  if (schemaVersion !== 0 && schemaVersion !== ANALYSIS_SCHEMA_VERSION) {
+  if (
+    schemaVersion !== 0 &&
+    schemaVersion !== 1 &&
+    schemaVersion !== ANALYSIS_SCHEMA_VERSION
+  ) {
     throw new Error(`Unsupported analysis schema version: ${String(schemaVersion)}.`);
   }
   if (
@@ -127,5 +135,13 @@ export function migrateAnalysisSession(value: unknown): AnalysisSession {
     schemaVersion: ANALYSIS_SCHEMA_VERSION,
     captures,
     measurements: candidate.measurements.map(migrateMeasurement),
+    scoreRequested: false,
+    attractivenessScore: undefined,
+    attractivenessModel: undefined,
+    legacyGoalProfileId:
+      schemaVersion === 1 ? candidate.goalProfileId : undefined,
+    legacyGoalScore: schemaVersion === 1 ? candidate.score : undefined,
+    goalProfileId: undefined,
+    score: undefined,
   } as unknown as AnalysisSession;
 }

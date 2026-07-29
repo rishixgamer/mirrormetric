@@ -4,6 +4,11 @@ import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  define: {
+    __ATTRACTIVENESS_MODEL_SHA256__: JSON.stringify(
+      process.env.VITE_ATTRACTIVENESS_MODEL_SHA256 ?? "",
+    ),
+  },
   plugins: [
     react(),
     {

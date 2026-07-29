@@ -1,4 +1,4 @@
-const CACHE = "mirrormetric-v1.0.0-beta.1";
+const CACHE = "mirrormetric-v1.0.0-beta.1-score-schema-2";
 const APP_SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
