@@ -14,6 +14,11 @@ The production content-security policy allows connections only to the same
 origin. The pinned model and runtime are self-hosted. MirrorMetric does not
 enable third-party analytics or MediaPipe network telemetry.
 
+The optional benchmark pack is requested only after score opt-in. It is a
+same-origin `GET` with no body; photos, pixels, landmarks, measurements, and
+results are never attached. Its bytes are checksum-verified before use and may
+be cached by the same-origin service worker for offline reuse.
+
 ## Memory and storage
 
 Source photos and editor object URLs exist only in the active tab and are not
@@ -24,6 +29,11 @@ History is off by default. On explicit save, the result—without source
 photos—is encrypted in IndexedDB using a passphrase-derived AES-GCM key. The
 passphrase and key are never persisted. Record ID and date remain visible to
 the local database index; result contents remain inside the envelope.
+
+A saved schema-two result may include the small model manifest needed to
+reproduce its local contributions. It does not include SCUT source images or
+annotations. A migrated schema-one record preserves its old goal score as
+read-only data.
 
 ## Exports and deletion
 

@@ -13,9 +13,10 @@
     "test:e2e": "playwright test",
     "test:e2e:desktop": "playwright test --project=desktop-chromium",
     "benchmark": "node tools/benchmark/evaluate.mjs",
+    "verify:attractiveness": "node tools/attractiveness/self-test.mjs && node tools/attractiveness/verify-pack.mjs",
     "verify:licenses": "node tools/check-licenses.mjs",
     "verify:checksums": "node tools/verify-checksums.mjs",
-    "check": "pnpm test && pnpm verify:checksums && pnpm verify:licenses && pnpm build"
+    "check": "pnpm test && pnpm verify:attractiveness && pnpm verify:checksums && pnpm verify:licenses && pnpm build"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "1.0.0",

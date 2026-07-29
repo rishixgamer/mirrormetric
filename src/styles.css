@@ -206,6 +206,11 @@ main:focus {
   opacity: 0.42;
 }
 
+.button-disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .button-small {
   min-height: 42px;
   padding: 0 17px;
@@ -1038,6 +1043,11 @@ main:focus {
   pointer-events: none;
 }
 
+.drop-zone:has(.visually-hidden-input:focus-visible) .button {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
 .file-preview-grid {
   display: grid;
   margin-top: 16px;
@@ -1133,6 +1143,17 @@ input[type="checkbox"] {
   padding: 0 20px;
   border: 1px solid var(--ink);
   background: var(--blue);
+}
+
+.score-opt-in legend {
+  padding: 0 8px;
+  font-weight: 750;
+}
+
+.score-opt-in > p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
 }
 
 .goal-select {
@@ -1732,6 +1753,29 @@ input[type="password"] {
   font-size: 9rem;
   font-weight: 500;
   line-height: 0.85;
+}
+
+.score-total > strong small {
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.benchmark-withheld {
+  margin-top: 40px;
+}
+
+.withheld-breakdown {
+  margin-top: 36px;
+}
+
+.benchmark-withheld ul {
+  line-height: 1.6;
+}
+
+.alert-warning {
+  border-color: #7b5a00;
+  background: #fff6d8;
 }
 
 .score-total p,

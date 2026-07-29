@@ -33,9 +33,10 @@ export default defineConfig({
     { name: "ios-webkit", use: { ...devices["iPhone 15"] } },
   ],
   webServer: {
-    command: "pnpm build && pnpm exec vite preview --host 127.0.0.1",
+    command:
+      "VITE_E2E=true pnpm build && pnpm exec vite preview --host 127.0.0.1",
     url: "http://127.0.0.1:4173",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

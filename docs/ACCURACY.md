@@ -4,7 +4,8 @@
 
 FaceIQ Labs publishes neither its scoring implementation nor a reproducible
 ground-truth benchmark. MirrorMetric therefore makes no score-parity claim.
-Visual similarity between two products is not validation.
+Areum's guided 3D experience also does not validate MirrorMetric's 2D
+front-view estimates. Visual product similarity is not validation.
 
 For this project, accuracy is a set of testable properties:
 
@@ -36,7 +37,7 @@ The product gate is conservative:
 
 Precision mode requires three accepted captures. Ratios and percentages above
 5% coefficient of variation, or angles above 1.5° sample standard deviation,
-are labeled unstable and excluded from goal similarity.
+are labeled unstable and cause the optional benchmark score to be withheld.
 
 ## Evaluation protocol
 
@@ -53,6 +54,19 @@ releases fail automated review if aggregate NME or failure rate worsens by more
 than 5%, unless maintainers publish an explicit review. See
 [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md).
 
+## Optional score validation
+
+The SCUT adapter uses 13 measurements computable from both the official
+86-point topology and MirrorMetric's MediaPipe anchors. A pooled ridge model
+uses fixed-seed nested five-fold validation and reports Pearson, MAE, RMSE, the
+90% absolute-error quantile, Asian-male MAE, and Caucasian-male MAE. Release
+requires Pearson ≥ 0.60, MAE ≤ 0.45, RMSE ≤ 0.60, and both subset MAEs ≤ 1.5×
+pooled MAE.
+
+No SCUT-derived pack is distributed because redistribution rights have not
+been confirmed. A missing pack is an expected withheld state, not a fallback
+score.
+
 ## Evidence still required
 
 `v1.0.0-beta.1` remains experimental because the repository does not contain:
@@ -61,8 +75,11 @@ than 5%, unless maintainers publish an explicit review. See
 - repeated sessions from consenting adults;
 - independent landmark annotation and inter-rater error;
 - multiple camera-family testing;
-- powered subgroup uncertainty; or
-- evidence that the project-defined goal bands improve any real-world outcome.
+- powered subgroup uncertainty;
+- a cohort-specific preference study if a future claim concerns U.S. women
+  ages 18–21;
+- independent review of the SCUT anchor mapping and data eligibility; and
+- evidence that any displayed estimate improves a real-world outcome.
 
 A future non-experimental release must publish within-subject CV, intraclass
 correlation, median absolute deviation, 95% limits of agreement, failure
@@ -70,6 +87,7 @@ intervals, camera-condition results, and subgroup sample sizes.
 
 ## Non-claims
 
-No output is a diagnosis, treatment indication, attractiveness measurement,
-population percentile, identity inference, prediction of outcome, or statement
-of worth.
+No output is an objective attractiveness measurement, diagnosis, treatment
+indication, population percentile, identity inference, outcome prediction, or
+statement of worth. The optional score is only an experimental SCUT benchmark
+estimate.

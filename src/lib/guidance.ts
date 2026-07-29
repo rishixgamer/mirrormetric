@@ -1,6 +1,5 @@
 import {
   GUIDANCE_SCHEMA_VERSION,
-  type GoalProfileId,
   type GuidanceItem,
   type MeasurementResult,
 } from "../domain/contracts";
@@ -14,7 +13,6 @@ const ASPS_PATIENT_SAFETY =
 
 export function buildGuidance(
   measurements: ReadonlyArray<MeasurementResult>,
-  goalProfileId: GoalProfileId,
 ): GuidanceItem[] {
   const unstable = measurements.filter(
     (measurement) => measurement.stability === "unstable",
@@ -35,24 +33,6 @@ export function buildGuidance(
       evidenceLevel: "capture-standard",
       reversible: true,
       sourceLabel: "MirrorMetric capture protocol",
-    },
-    {
-      id: `goal-${goalProfileId}`,
-      title: `Explore the ${goalProfileId} presentation profile`,
-      summary:
-        goalProfileId === "angular"
-          ? "Try reversible silhouette changes that add clearer lines, such as structured hair shape, brow definition, or facial-hair edges when relevant to you."
-          : goalProfileId === "soft"
-            ? "Try reversible silhouette changes that soften transitions, such as less rigid hair outlines, blended brow edges, or diffused makeup when relevant to you."
-            : goalProfileId === "androgynous"
-              ? "Experiment with a mix of structured and softened elements without treating either as gendered or required."
-              : "Keep one element at a time neutral, then compare how balanced combinations feel to you.",
-      why:
-        "You selected this subjective goal profile; it is not inferred from identity.",
-      evidenceLevel: "reversible-experiment",
-      reversible: true,
-      sourceLabel:
-        "Project hypothesis—presentation experiment, not clinical evidence",
     },
     {
       id: "one-change",
