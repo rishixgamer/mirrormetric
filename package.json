@@ -1,0 +1,38 @@
+{
+  "name": "mirrormetric",
+  "version": "1.0.0-beta.1",
+  "private": true,
+  "type": "module",
+  "description": "Private, transparent facial measurements in your browser.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && vite build --config vite.worker.config.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:desktop": "playwright test --project=desktop-chromium",
+    "benchmark": "node tools/benchmark/evaluate.mjs",
+    "verify:licenses": "node tools/check-licenses.mjs",
+    "verify:checksums": "node tools/verify-checksums.mjs",
+    "check": "pnpm test && pnpm verify:checksums && pnpm verify:licenses && pnpm build"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "1.0.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.55.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.4",
+    "axe-core": "4.10.3",
+    "typescript": "7.0.2",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
+  },
+  "packageManager": "pnpm@11.9.0"
+}

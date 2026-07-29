@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+coverage/
+work/
+*.tsbuildinfo
+test-results/
+playwright-report/
+blob-report/
