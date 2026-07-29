@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /results
+Disallow: /history
+Sitemap: /sitemap.xml
