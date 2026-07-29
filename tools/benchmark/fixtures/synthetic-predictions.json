@@ -1,0 +1,21 @@
+{
+  "dataset": "synthetic-contract-fixture",
+  "normalization": "interocular distance",
+  "failureThreshold": 0.1,
+  "samples": [
+    {
+      "id": "neutral-01",
+      "normalizedBy": 100,
+      "groundTruth": [[0, 0], [100, 0], [50, 50]],
+      "prediction": [[1, 0], [99, 1], [51, 49]],
+      "tags": ["neutral"]
+    },
+    {
+      "id": "pose-01",
+      "normalizedBy": 100,
+      "groundTruth": [[0, 0], [100, 0], [50, 50]],
+      "prediction": [[2, 1], [98, 1], [52, 48]],
+      "tags": ["pose"]
+    }
+  ]
+}
