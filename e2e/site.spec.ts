@@ -235,7 +235,7 @@ test("quick scan, correction, encrypted history, and deletion", async ({
   await page.locator('input[type="file"]').setInputFiles(await patternedPhoto(page));
   await confirmAdultUse(page);
   await page
-    .getByLabel("Show an experimental attractiveness estimate", {
+    .getByLabel("Show an experimental 0–10 geometry score", {
       exact: false,
     })
     .check();
@@ -246,7 +246,7 @@ test("quick scan, correction, encrypted history, and deletion", async ({
   await expect(page.getByRole("heading", { name: "Your measurement record." })).toBeVisible();
   await expect(
     page.getByRole("group", {
-      name: /out of 10, 90 percent range.*experimental benchmark estimate/i,
+      name: /out of 10, 90 percent range.*experimental SCUT benchmark estimate/i,
     }),
   ).toBeVisible();
   await expect(page.locator(".score-breakdown article")).toHaveCount(13);
@@ -319,7 +319,7 @@ test("precision mode accepts three captures and reports stability", async ({
   }
   await confirmAdultUse(page);
   await page
-    .getByLabel("Show an experimental attractiveness estimate", {
+    .getByLabel("Show an experimental 0–10 geometry score", {
       exact: false,
     })
     .check();
@@ -332,7 +332,7 @@ test("precision mode accepts three captures and reports stability", async ({
   await expect(page.locator(".stability-stable")).toHaveCount(18);
   await expect(
     page.getByRole("group", {
-      name: /out of 10, 90 percent range.*experimental benchmark estimate/i,
+      name: /out of 10, 90 percent range.*experimental SCUT benchmark estimate/i,
     }),
   ).toBeVisible();
   await expectNoAxeViolations(page);
@@ -377,7 +377,7 @@ test("precision score is withheld when a required input is unstable", async ({
   }
   await confirmAdultUse(page);
   await page
-    .getByLabel("Show an experimental attractiveness estimate", {
+    .getByLabel("Show an experimental 0–10 geometry score", {
       exact: false,
     })
     .check();
@@ -473,7 +473,7 @@ test("bad capture and model failure recover without a reload", async ({
     .locator('input[type="file"]')
     .setInputFiles(await patternedPhoto(page));
   await page
-    .getByLabel("Show an experimental attractiveness estimate", {
+    .getByLabel("Show an experimental 0–10 geometry score", {
       exact: false,
     })
     .check();
@@ -491,7 +491,17 @@ test("bad capture and model failure recover without a reload", async ({
   );
   await page.getByRole("button", { name: "Analyze 1 capture" }).click();
   await expect(page.getByRole("heading", { name: "Your measurement record." })).toBeVisible();
-  await expect(page.getByText("Score withheld", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Experimental geometry balance score",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("group", {
+      name: /out of 10, input-sensitivity range.*experimental geometry balance score/i,
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".score-breakdown article")).toHaveCount(13);
   await expectNoAxeViolations(page);
 });
 

@@ -6,7 +6,7 @@ import { useDocumentMeta } from "../router";
 export function MethodologyPage() {
   useDocumentMeta(
     "Accuracy and methodology",
-    "How MirrorMetric handles capture quality, repeatability, landmark correction, uncertainty, and the optional experimental SCUT benchmark estimate.",
+    "How MirrorMetric handles capture quality, repeatability, landmark correction, uncertainty, and the optional experimental geometry score.",
   );
   const categories = [...new Set(MEASUREMENT_DEFINITIONS.map((item) => item.category))];
 
@@ -95,20 +95,20 @@ export function MethodologyPage() {
       <section className="section section-blue" id="score">
         <div className="section-intro">
           <span className="eyebrow">Score policy</span>
-          <h2>A reproducible estimate with a deliberately narrow claim.</h2>
+          <h2>A working score with a deliberately narrow claim.</h2>
           <p>
-            After explicit opt-in and an adult-man confirmation, a separately
-            downloaded ridge model combines 13 standardized measurements. The
-            raw 1–5 SCUT estimate is clamped, mapped linearly to 0–10, and shown
-            with a 90% error range. Every input, coefficient, contribution, and
-            exclusion reason remains visible.
+            After explicit opt-in, the public build compares 13 measurements
+            with broad project-defined bands and maps their weighted fit to
+            0–10. It shows an input-sensitivity range and every target, weight,
+            contribution, and exclusion reason. This fallback is not trained
+            on attractiveness labels.
           </p>
         </div>
         <div className="profile-grid">
           {REQUIRED_ATTRACTIVENESS_METRIC_IDS.map((measurementId) => (
             <article key={measurementId}>
               <h3>{measurementId}</h3>
-              <p>Cross-topology geometry input standardized by training mean and standard deviation.</p>
+              <p>Cross-topology input with an inspectable broad fallback band.</p>
               <small>Required, finite, and stable in precision mode.</small>
             </article>
           ))}
@@ -116,8 +116,9 @@ export function MethodologyPage() {
         <div className="benchmark-banner">
           <strong>Claim boundary</strong>
           <p>
-            SCUT-FBP5500 contains pooled volunteer ratings and does not provide
-            a U.S.-women-ages-18–21 segment. The estimate is not a percentile,
+            The public fallback is a geometry-band fit, not an attractiveness
+            model. SCUT-FBP5500 contains pooled volunteer ratings and does not
+            provide a U.S.-women-ages-18–21 segment. Neither path is a percentile,
             demographic inference, objective standard, or source of advice.
           </p>
         </div>
@@ -139,10 +140,10 @@ export function MethodologyPage() {
         <div className="benchmark-banner">
           <strong>Beta limitation</strong>
           <p>
-            A model releases only at Pearson ≥ 0.60, MAE ≤ 0.45, RMSE ≤ 0.60,
-            and subset MAE ≤ 1.5× pooled MAE. Redistribution rights must also
-            be confirmed. Otherwise model loading fails closed and raw
-            measurements remain available.
+            The first real 13-feature run produced Pearson 0.470, MAE 0.445,
+            and RMSE 0.573 on 2,749 male records. It missed the Pearson ≥ 0.60
+            gate, so it is not presented as a validated SCUT estimate. The
+            transparent geometry fallback remains available instead.
           </p>
         </div>
       </section>

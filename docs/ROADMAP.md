@@ -14,6 +14,10 @@
 - [x] Preserve old user-chosen goal scores as read-only legacy records.
 - [x] Add adult-man opt-in, schema-two benchmark results, transparent
   contributions, fail-closed model loading, and SCUT training adapter.
+- [x] Add a separately labeled, inspectable `geometry-balance-1` fallback so a
+  missing or ineligible preference model does not block the optional 0–10 UI.
+- [x] Run the real SCUT male geometry pipeline and publish its failed Pearson
+  release-gate result without distributing source data.
 - [ ] Confirm redistribution rights and publish a statistically eligible,
   checksum-pinned SCUT-derived model pack.
 - [x] Reversible guidance and universal professional-safety education.

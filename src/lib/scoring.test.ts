@@ -5,6 +5,8 @@ import type {
 } from "../domain/contracts";
 import {
   computeAttractivenessScore,
+  computeGeometryBalanceScore,
+  GEOMETRY_BALANCE_TARGETS,
   REQUIRED_ATTRACTIVENESS_METRIC_IDS,
 } from "./scoring";
 
@@ -175,6 +177,71 @@ describe("experimental benchmark score", () => {
       computeAttractivenessScore(inputs, "precision", model()).status,
     ).toBe("withheld");
     expect(computeAttractivenessScore(inputs, "quick", model()).status).toBe(
+      "available",
+    );
+  });
+});
+
+describe("transparent geometry fallback score", () => {
+  const midpointMeasurements = () =>
+    GEOMETRY_BALANCE_TARGETS.map((target) =>
+      result(
+        target.measurementId,
+        (target.minimum + target.maximum) / 2,
+      ),
+    );
+
+  it("returns an available inspectable score without claiming a preference model", () => {
+    const score = computeGeometryBalanceScore(
+      midpointMeasurements(),
+      "quick",
+      "Validated preference model unavailable.",
+    );
+    expect(score.status).toBe("available");
+    expect(score.score).toBe(10);
+    expect(score.rangeLabel).toBe("Input-sensitivity range");
+    expect(score.components).toHaveLength(13);
+    expect(score.provenance.basis).toBe("geometry-balance");
+    expect(score.provenance.dataset).toMatch(/none/i);
+    expect(score.disclaimer).toMatch(/not a validated attractiveness rating/i);
+    expect(
+      score.components.reduce(
+        (sum, component) => sum + component.contribution,
+        0,
+      ),
+    ).toBeCloseTo(10, 12);
+  });
+
+  it("reduces the score outside the broad bands and exposes target math", () => {
+    const inputs = midpointMeasurements();
+    const target = GEOMETRY_BALANCE_TARGETS[0];
+    inputs[0] = result(
+      target.measurementId,
+      target.minimum - (target.maximum - target.minimum) * 2,
+    );
+    const score = computeGeometryBalanceScore(inputs, "quick");
+    expect(score.status).toBe("available");
+    expect(score.score).toBeLessThan(10);
+    expect(score.components[0].targetMinimum).toBe(target.minimum);
+    expect(score.components[0].targetMaximum).toBe(target.maximum);
+    expect(score.components[0].similarity).toBeLessThan(1);
+  });
+
+  it("withholds only for unusable required inputs", () => {
+    expect(
+      computeGeometryBalanceScore(midpointMeasurements().slice(1), "quick")
+        .status,
+    ).toBe("withheld");
+    const unstable = midpointMeasurements();
+    unstable[0] = result(
+      GEOMETRY_BALANCE_TARGETS[0].measurementId,
+      unstable[0].value,
+      "unstable",
+    );
+    expect(computeGeometryBalanceScore(unstable, "precision").status).toBe(
+      "withheld",
+    );
+    expect(computeGeometryBalanceScore(unstable, "quick").status).toBe(
       "available",
     );
   });

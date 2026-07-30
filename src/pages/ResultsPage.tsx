@@ -25,7 +25,7 @@ export function ResultsPage({
 }: ResultsPageProps) {
   useDocumentMeta(
     "Analysis results",
-    "Review transparent facial measurements, uncertainty, stability, an optional experimental benchmark estimate, and reversible guidance.",
+    "Review transparent facial measurements, uncertainty, stability, an optional experimental geometry score, and reversible guidance.",
   );
   const [editorCapture, setEditorCapture] = useState<number>();
   const [passphrase, setPassphrase] = useState("");
@@ -49,6 +49,8 @@ export function ResultsPage({
     );
   }
   const activeSession = session;
+  const geometryBalance =
+    session.attractivenessScore?.provenance.basis === "geometry-balance";
 
   const overallConfidence =
     session.measurements.reduce(
@@ -143,11 +145,15 @@ export function ResultsPage({
           <div className="score-control">
             <div>
               <span className="eyebrow">Optional subjective summary</span>
-              <h2 id="benchmark-score-title">Experimental benchmark estimate</h2>
+              <h2 id="benchmark-score-title">
+                {geometryBalance
+                  ? "Experimental geometry balance score"
+                  : "Experimental benchmark estimate"}
+              </h2>
               <p>
-                A transparent ridge-regression result based on the pooled
-                SCUT-FBP5500 male subsets. It does not infer demographics and
-                does not represent U.S. women ages 18–21.
+                {geometryBalance
+                  ? "A transparent fit to broad, project-defined geometry bands. It is not trained on attractiveness labels or demographic preferences."
+                  : "A transparent ridge-regression result based on the pooled SCUT-FBP5500 male subsets. It does not infer demographics and does not represent U.S. women ages 18–21."}
               </p>
             </div>
             <div className="goal-control-box">
@@ -167,15 +173,19 @@ export function ResultsPage({
               <div
                 className="score-total"
                 role="group"
-                aria-label={`${session.attractivenessScore.score.toFixed(1)} out of 10, 90 percent range ${session.attractivenessScore.uncertainty.lower.toFixed(1)} to ${session.attractivenessScore.uncertainty.upper.toFixed(1)}, experimental benchmark estimate`}
+                aria-label={`${session.attractivenessScore.score.toFixed(1)} out of 10, ${session.attractivenessScore.rangeLabel === "Input-sensitivity range" ? "input-sensitivity range" : "90 percent range"} ${session.attractivenessScore.uncertainty.lower.toFixed(1)} to ${session.attractivenessScore.uncertainty.upper.toFixed(1)}, ${session.attractivenessScore.provenance.label}`}
               >
-                <span>Experimental SCUT benchmark estimate</span>
+                <span>
+                  {geometryBalance
+                    ? "Experimental geometry balance score"
+                    : "Experimental SCUT benchmark estimate"}
+                </span>
                 <strong>
                   {session.attractivenessScore.score.toFixed(1)}
                   <small> / 10</small>
                 </strong>
                 <p>
-                  90% range{" "}
+                  {session.attractivenessScore.rangeLabel ?? "90% range"}{" "}
                   {session.attractivenessScore.uncertainty.lower.toFixed(1)}–
                   {session.attractivenessScore.uncertainty.upper.toFixed(1)} ·{" "}
                   {session.attractivenessScore.inputConfidence.toFixed(0)}%
@@ -190,15 +200,15 @@ export function ResultsPage({
                     <div>
                       <strong>{component.label}</strong>
                       <span>
-                        Input {component.value.toFixed(4)} · training mean{" "}
-                        {component.mean.toFixed(4)} · SD{" "}
-                        {component.standardDeviation.toFixed(4)} · standardized{" "}
-                        {component.standardizedValue.toFixed(4)}
+                        {geometryBalance
+                          ? `Input ${component.value.toFixed(4)} · target ${component.targetMinimum?.toFixed(4)}–${component.targetMaximum?.toFixed(4)} · band fit ${component.similarity?.toFixed(1)}%`
+                          : `Input ${component.value.toFixed(4)} · training mean ${component.mean.toFixed(4)} · SD ${component.standardDeviation.toFixed(4)} · standardized ${component.standardizedValue.toFixed(4)}`}
                       </span>
                     </div>
                     <span>
-                      coefficient {component.coefficient.toFixed(6)} ·
-                      contribution {component.contribution.toFixed(6)}
+                      {geometryBalance
+                        ? `weight ${component.coefficient.toFixed(2)} · score contribution ${component.contribution.toFixed(3)}`
+                        : `coefficient ${component.coefficient.toFixed(6)} · contribution ${component.contribution.toFixed(6)}`}
                     </span>
                     <p>{component.reason}</p>
                   </article>
@@ -209,8 +219,8 @@ export function ResultsPage({
             <div className="alert alert-warning benchmark-withheld" role="status">
               <strong>Score withheld</strong>
               <p>
-                MirrorMetric will not estimate a score without a verified model
-                pack and every stable, finite required input.
+                MirrorMetric cannot compute this score when a required input is
+                missing, non-finite, or unstable across precision captures.
               </p>
               <ul>
                 {session.attractivenessScore.withheldReasons.map((reason) => (
@@ -230,13 +240,16 @@ export function ResultsPage({
                       <strong>{component.label}</strong>
                       <span>
                         {component.included
-                          ? `Input ${component.value.toFixed(4)} · mean ${component.mean.toFixed(4)} · SD ${component.standardDeviation.toFixed(4)} · standardized ${component.standardizedValue.toFixed(4)}`
+                          ? geometryBalance
+                            ? `Input ${component.value.toFixed(4)} · target ${component.targetMinimum?.toFixed(4)}–${component.targetMaximum?.toFixed(4)} · band fit ${component.similarity?.toFixed(1)}%`
+                            : `Input ${component.value.toFixed(4)} · mean ${component.mean.toFixed(4)} · SD ${component.standardDeviation.toFixed(4)} · standardized ${component.standardizedValue.toFixed(4)}`
                           : "Required input excluded"}
                       </span>
                     </div>
                     <span>
-                      coefficient {component.coefficient.toFixed(6)} ·
-                      contribution {component.contribution.toFixed(6)}
+                      {geometryBalance
+                        ? `weight ${component.coefficient.toFixed(2)} · score contribution ${component.contribution.toFixed(3)}`
+                        : `coefficient ${component.coefficient.toFixed(6)} · contribution ${component.contribution.toFixed(6)}`}
                     </span>
                     <p>{component.reason}</p>
                   </article>

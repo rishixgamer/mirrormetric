@@ -19,6 +19,9 @@ same-origin `GET` with no body; photos, pixels, landmarks, measurements, and
 results are never attached. Its bytes are checksum-verified before use and may
 be cached by the same-origin service worker for offline reuse.
 
+If that pack is unavailable or ineligible, the geometry fallback uses only the
+measurements already in memory. It performs no additional request.
+
 ## Memory and storage
 
 Source photos and editor object URLs exist only in the active tab and are not

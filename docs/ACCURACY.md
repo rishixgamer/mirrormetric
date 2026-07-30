@@ -37,7 +37,7 @@ The product gate is conservative:
 
 Precision mode requires three accepted captures. Ratios and percentages above
 5% coefficient of variation, or angles above 1.5° sample standard deviation,
-are labeled unstable and cause the optional benchmark score to be withheld.
+are labeled unstable and cause the optional score to be withheld.
 
 ## Evaluation protocol
 
@@ -63,9 +63,18 @@ uses fixed-seed nested five-fold validation and reports Pearson, MAE, RMSE, the
 requires Pearson ≥ 0.60, MAE ≤ 0.45, RMSE ≤ 0.60, and both subset MAEs ≤ 1.5×
 pooled MAE.
 
-No SCUT-derived pack is distributed because redistribution rights have not
-been confirmed. A missing pack is an expected withheld state, not a fallback
-score.
+The first real run on the official binary landmark files included 2,749 male
+records after deterministically excluding one malformed record (`CM152`).
+It produced Pearson `0.469799`, MAE `0.444885`, RMSE `0.573354`, 90%
+absolute-error quantile `0.973665`, Asian-male MAE `0.446328`, and
+Caucasian-male MAE `0.441032`. It missed the Pearson release gate and is not
+distributed as a preference model.
+
+When no release-eligible SCUT pack is active, the public app uses
+`geometry-balance-1`: an MIT-licensed fit to 13 broad, project-defined geometry
+bands. Its range comes from each measurement interval plus perturbation
+sensitivity. It has no attractiveness labels, population calibration, or
+preference-model claim.
 
 ## Evidence still required
 
@@ -89,5 +98,5 @@ intervals, camera-condition results, and subgroup sample sizes.
 
 No output is an objective attractiveness measurement, diagnosis, treatment
 indication, population percentile, identity inference, outcome prediction, or
-statement of worth. The optional score is only an experimental SCUT benchmark
-estimate.
+statement of worth. The public optional score is only an experimental geometry
+band fit unless a separately labeled, release-eligible benchmark pack is active.

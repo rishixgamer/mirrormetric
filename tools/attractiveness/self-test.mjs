@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   extractCrossTopologyFeatures,
   mapScutAnchors,
+  parsePts,
   REQUIRED_METRIC_IDS,
   SCUT_TO_MEDIAPIPE_ANCHORS,
 } from "./features.mjs";
@@ -22,6 +23,26 @@ assert.deepEqual(
   extractCrossTopologyFeatures(syntheticScutLandmarks(100)),
   extractCrossTopologyFeatures(points),
   "translation normalization must be deterministic",
+);
+const binaryFixture = new Uint8Array(4 + points.length * 8);
+const binaryView = new DataView(binaryFixture.buffer);
+binaryView.setUint32(0, points.length, true);
+points.forEach((point, index) => {
+  binaryView.setFloat32(4 + index * 8, point.x, true);
+  binaryView.setFloat32(8 + index * 8, point.y, true);
+});
+assert.deepEqual(
+  parsePts(binaryFixture),
+  points,
+  "the official binary SCUT landmark format must parse deterministically",
+);
+const textFixture = `version: 1\nn_points: 86\n{\n${points
+  .map((point) => `${point.x} ${point.y}`)
+  .join("\n")}\n}`;
+assert.deepEqual(
+  parsePts(new TextEncoder().encode(textFixture)),
+  points,
+  "text landmark bytes must remain supported",
 );
 
 const rows = Array.from({ length: 60 }, (_, index) => {

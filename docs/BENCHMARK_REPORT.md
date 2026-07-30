@@ -48,13 +48,28 @@ without a documented review.
 
 ## Experimental score-model status
 
-No SCUT-derived model result is claimed in this report. The repository contains
-only an external-data adapter and deterministic synthetic training contract.
-A future report must publish nested five-fold Pearson, MAE, RMSE, 90%
-absolute-error quantile, Asian-male MAE, Caucasian-male MAE, selected
-regularization, seed, provenance, license decision, and model-pack checksum.
-The product fails closed until that report passes the published gates and
-redistribution is confirmed.
+The official SCUT-FBP5500 v2 archive was used locally under its
+non-commercial-research terms. Images, ratings, and landmark annotations are
+not committed. The adapter read the official `All_labels.txt` and binary
+86-point landmark files, selected the male subsets by their `AM`/`CM` prefixes,
+and deterministically excluded the malformed four-byte `CM152.pts` record.
+
+Fixed-seed (`20260729`) nested five-fold results:
+
+| Result | Value |
+| --- | ---: |
+| Samples | 2,749 |
+| Pearson | 0.469799 |
+| MAE | 0.444885 |
+| RMSE | 0.573354 |
+| 90% absolute-error quantile | 0.973665 |
+| Asian-male MAE | 0.446328 |
+| Caucasian-male MAE | 0.441032 |
+
+MAE, RMSE, and subgroup-ratio gates pass; Pearson does not meet the required
+`0.60`. No SCUT preference model is therefore bundled or claimed. The public
+app uses the separately labeled `geometry-balance-1` fallback, whose bands and
+weights are project-defined and have no attractiveness training labels.
 
 ## Context, not equivalence
 

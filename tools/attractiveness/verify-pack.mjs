@@ -10,7 +10,7 @@ try {
   await access(modelUrl);
 } catch {
   console.log(
-    "No public SCUT-derived model pack is bundled; the application will fail closed.",
+    "No public SCUT-derived model pack is bundled; the SCUT path will fail closed and the geometry fallback remains available.",
   );
   process.exit(0);
 }

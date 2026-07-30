@@ -13,15 +13,18 @@
 - Manual correction can introduce user error.
 - Precision mode estimates within-session variation from three captures; it
   does not establish day-to-day or camera-to-camera repeatability.
-- The optional score is a pooled SCUT benchmark estimate, not an objective
-  standard or a model of U.S. women ages 18–21.
+- The public optional score is a project-defined geometry-band fit, not an
+  objective standard, validated attractiveness rating, or model of U.S. women
+  ages 18–21.
 - SCUT's rating audience is not segmented to the requested cohort, and its
   subject composition is not equivalent to the app's adult-only eligibility.
 - Mapping SCUT's 86-point topology to MediaPipe anchors introduces
   cross-topology error in addition to photo and landmark error.
-- A 0–10 linear conversion adds familiarity, not validation or precision.
-- No production SCUT-derived pack is bundled until redistribution rights are
-  confirmed; score withholding is expected in this build.
+- A 0–10 conversion adds familiarity, not validation or precision.
+- The broad fallback bands and weights are maintainer choices, not learned
+  preferences or population norms.
+- The first real SCUT ridge run missed the Pearson release gate (`0.470` versus
+  `0.60` required), and no SCUT-derived preference pack is bundled.
 - Guidance is not evidence that changing appearance improves wellbeing or any
   other outcome.
 - Professional links are general education and never personalized treatment

@@ -38,7 +38,7 @@ export shapes. Schema migrations are fail-closed; unknown future versions are
 not silently interpreted.
 
 Schema version 2 preserves schema-one goal scores as read-only legacy fields.
-New sessions contain no goal profile. Corrections recompute a benchmark score
+New sessions contain no goal profile. Corrections recompute the active score
 only from the exact manifest stored with the active result.
 
 ## Inference boundary
@@ -55,8 +55,9 @@ The 13-feature model is absent from the initial JavaScript. After score opt-in,
 the browser performs a same-origin GET, verifies its bytes against
 `VITE_ATTRACTIVENESS_MODEL_SHA256`, validates feature order, provenance,
 license, and release gates, then computes locally. The service worker may cache
-the verified response for offline reuse. Missing, invalid, unstable, or
-unlicensed inputs produce a withheld result.
+the verified response for offline reuse. A missing, invalid, or unlicensed
+SCUT pack activates the local geometry fallback. Missing, non-finite, or
+unstable required measurements produce a withheld result.
 
 ## Local storage
 

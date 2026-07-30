@@ -9,9 +9,9 @@ device. There are no accounts, analytics, server-side photo storage, premium
 accuracy features, or hidden demographic inference.
 
 > This is experimental research software. It is not medical advice or an
-> objective measure of beauty. The optional 0–10 result is an experimental
-> SCUT benchmark estimate—not a percentile or a prediction of what U.S. women
-> ages 18–21 find attractive.
+> objective measure of beauty. The public optional 0–10 result is a transparent
+> geometry-band fit—not a validated attractiveness rating, percentile, or
+> prediction of what U.S. women ages 18–21 find attractive.
 
 ## Product surface
 
@@ -22,9 +22,10 @@ accuracy features, or hidden demographic inference.
 - 18 candidate front-view measurements with formulas, confidence,
   uncertainty, limitations, source definitions, and perturbation sensitivity.
 - Drag-and-keyboard landmark correction with undo and reset.
-- Optional `x.x / 10` experimental benchmark estimate for self-confirmed adult
-  men, with a 90% range and every standardized input, coefficient,
-  contribution, and exclusion reason visible.
+- Optional `x.x / 10` experimental geometry balance score for self-confirmed
+  adult men, with an
+  input-sensitivity range and every target, weight, contribution, and exclusion
+  reason visible.
 - Reversible presentation experiments plus universal, non-personalized links
   to professional safety education.
 - Opt-in AES-GCM encrypted local history, per-record deletion, delete-all,
@@ -55,11 +56,13 @@ race-neutral ridge model with fixed-seed nested five-fold validation. It
 publishes Pearson, MAE, RMSE, the 90% absolute-error quantile, and Asian-male
 and Caucasian-male subset MAE. Restricted source data is never committed.
 
-No SCUT-derived production model pack is bundled because redistribution rights
-have not been confirmed. The application therefore withholds the optional
-score while continuing to show raw measurements. A future public pack must
-pass the documented statistical gates, carry a separate license notice, and
-be pinned by SHA-256.
+The first real 13-feature run on 2,749 SCUT male records produced Pearson
+`0.470`, MAE `0.445`, and RMSE `0.573`. Because it missed the published
+Pearson `0.60` gate—and redistribution rights for a derived pack remain
+unconfirmed—it is not presented as a validated SCUT estimate. The public app
+uses a separately labeled, MIT-licensed broad-band geometry fallback instead.
+A future SCUT pack must pass every statistical gate, carry a separate license
+notice, and be pinned by SHA-256.
 
 ## Run locally
 

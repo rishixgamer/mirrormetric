@@ -2,16 +2,20 @@
 
 ## Unreleased — experimental benchmark score
 
-- Replaces new-session goal profiles with an explicit optional adult-man
-  `x.x / 10` experimental SCUT benchmark estimate.
+- Replaces new-session goal profiles with an explicit optional `x.x / 10`
+  score. The public path is the separately labeled geometry balance fallback;
+  the SCUT preference path remains release-gated.
 - Adds schema-two results, 90% ranges, exact contributions, withholding
   reasons, and read-only migration of legacy goal scores.
 - Adds lazy same-origin checksum-verified model loading and offline caching.
 - Adds the external-data SCUT 86-point adapter, 19-anchor mapping fixtures,
   deterministic nested five-fold ridge pipeline, statistical release gates,
   license gate, and pack verification.
-- Does not bundle a SCUT-derived pack pending redistribution confirmation, so
-  the production score currently fails closed.
+- Adds the working `geometry-balance-1` fallback with 13 broad, inspectable
+  bands and an input-sensitivity range.
+- Records the first real SCUT geometry run (2,749 male records; Pearson 0.470,
+  MAE 0.445, RMSE 0.573). Because it misses the correlation gate, it is not
+  shipped as a validated preference model.
 
 MirrorMetric’s first public beta replaces the eight-measurement prototype with
 an evidence-first, adult-only product.

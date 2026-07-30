@@ -1,29 +1,44 @@
-# Experimental SCUT benchmark methodology
+# Experimental 0–10 score methodology
 
 The optional score is subordinate to the 18 raw measurements. It appears only
-after explicit score opt-in and confirmation that the subject is an adult man.
-MirrorMetric does not infer sex, gender, age, ethnicity, or identity from a
-photo.
+after explicit opt-in and adult-man confirmation. MirrorMetric does not infer
+sex, gender, age, ethnicity, or identity from a photo.
 
 ## Claim boundary
 
-The model is a pooled, race-neutral ridge regression trained on the
-Asian-male and Caucasian-male subsets of SCUT-FBP5500. SCUT provides aggregate
-volunteer ratings on a 1–5 scale; it does not provide a U.S.-women-ages-18–21
-audience segment. The output is therefore labeled **experimental SCUT
-benchmark estimate**. It is not a percentile, objective standard, demographic
-inference, or advice.
+The public path is labeled **experimental geometry balance score**. It
+compares 13 inputs with broad project-defined bands and has no attractiveness
+training labels. It is not a validated attractiveness rating, percentile,
+objective standard, demographic inference, preference prediction, or advice.
+
+A separately labeled SCUT ridge path remains release-gated. SCUT provides
+aggregate volunteer ratings on a 1–5 scale; it does not provide a
+U.S.-women-ages-18–21 audience segment.
 
 SCUT's subject composition and rating protocol are not equivalent to the
-adult-only application audience. That mismatch is a model limitation, not
-something the 0–10 conversion corrects.
+adult-only application audience. Neither the fallback nor a 0–10 conversion
+corrects that mismatch.
 
 ## Inputs and arithmetic
 
-The model requires `jaw-cheek`, `eye-spacing`, `left-eye-face`,
+Both paths require `jaw-cheek`, `eye-spacing`, `left-eye-face`,
 `right-eye-face`, `eye-symmetry`, `mean-canthal-tilt`,
 `canthal-symmetry`, `brow-eye-symmetry`, `nose-face`, `mouth-nose`,
 `mouth-face`, `lip-aperture`, and `jaw-side-symmetry`.
+
+The public fallback computes a soft fit for every broad band:
+
+```text
+fit_i = 1                                      when value is inside the band
+fit_i = exp(-2.5 × distance_to_band / width)   otherwise
+score = round(10 × Σ(weight_i × fit_i) / Σ(weight_i), 1)
+```
+
+The input-sensitivity range evaluates each component across its measurement
+interval expanded by the published anchor-perturbation delta. Every target
+band, weight, fit, contribution, and exclusion reason is visible.
+
+A future release-eligible SCUT pack uses:
 
 ```text
 standardized_i = (value_i - training_mean_i) / training_sd_i
@@ -32,20 +47,20 @@ raw = clamp(intercept + Σ contribution_i, 1, 5)
 score = round(((raw - 1) / 4) × 10, 1)
 ```
 
-The result exposes every value, mean, standard deviation, standardized value,
+That path exposes every value, mean, standard deviation, standardized value,
 coefficient, contribution, and inclusion reason.
 
 ## Withholding and uncertainty
 
-The score is withheld when the model is absent, its checksum fails, its
-manifest or license is invalid, a required measurement is missing or
-non-finite, or a required precision-mode measurement is unstable.
+The score is withheld when a required measurement is missing or non-finite, or
+a required precision-mode measurement is unstable. When the SCUT pack is
+absent, invalid, or fails its checksum, MirrorMetric uses the geometry fallback
+instead of fabricating benchmark coefficients.
 
-The 90% displayed range combines the held-out 90th-percentile absolute
-residual with measurement uncertainty. Measurement uncertainty is propagated
-through standardized ridge coefficients by root-sum-of-squares, then added to
-the held-out residual quantile. Both raw endpoints are clamped to 1–5 before
-the same 0–10 conversion.
+Only a release-eligible SCUT result uses a 90% displayed range combining the
+held-out 90th-percentile absolute residual with propagated measurement
+uncertainty. The public fallback labels its result **Input-sensitivity range**;
+it is not a calibrated confidence interval.
 
 ## Training and release control
 
@@ -57,6 +72,12 @@ five-fold validation.
 A pack is release-eligible only when pooled Pearson correlation is at least
 `0.60`, MAE is at most `0.45`, RMSE is at most `0.60`, and Asian-male and
 Caucasian-male MAE are each at most `1.5×` pooled MAE.
+
+The first real fixed-seed run used 2,749 male records after excluding one
+malformed landmark file. It produced Pearson `0.469799`, MAE `0.444885`, RMSE
+`0.573354`, 90% absolute-error quantile `0.973665`, Asian-male MAE `0.446328`,
+and Caucasian-male MAE `0.441032`. It therefore failed the Pearson gate and is
+not distributed as a preference model.
 
 Statistical eligibility does not grant redistribution rights. The runtime
 additionally requires a versioned manifest, confirmed redistribution flag,

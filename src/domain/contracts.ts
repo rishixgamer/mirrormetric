@@ -19,6 +19,9 @@ export type LegacyGoalProfileId =
   | "soft"
   | "androgynous";
 export type AttractivenessScoreStatus = "available" | "withheld";
+export type AttractivenessScoreBasis =
+  | "scut-ridge"
+  | "geometry-balance";
 
 export interface PoseEstimate {
   readonly yaw: number;
@@ -197,6 +200,9 @@ export interface AttractivenessScoreComponent {
   readonly contribution: number;
   readonly included: boolean;
   readonly reason: string;
+  readonly targetMinimum?: number;
+  readonly targetMaximum?: number;
+  readonly similarity?: number;
 }
 
 export interface AttractivenessScoreResult {
@@ -207,17 +213,19 @@ export interface AttractivenessScoreResult {
   readonly inputConfidence: number;
   readonly uncertainty?: UncertaintyInterval;
   readonly propagatedMeasurementUncertainty?: number;
+  readonly rangeLabel?: "90% range" | "Input-sensitivity range";
   readonly components: ReadonlyArray<AttractivenessScoreComponent>;
   readonly withheldReasons: ReadonlyArray<string>;
   readonly provenance: {
-    readonly label: "experimental SCUT benchmark estimate";
+    readonly basis?: AttractivenessScoreBasis;
+    readonly label: string;
     readonly modelVersion: string;
-    readonly dataset: "SCUT-FBP5500";
-    readonly targetPopulation:
-      "self-confirmed adult men; SCUT male-subset volunteer ratings; no audience-age segmentation";
+    readonly dataset: string;
+    readonly targetPopulation: string;
     readonly validation?: AttractivenessValidationResults;
     readonly checksum?: string;
     readonly licenseNotice: string;
+    readonly modelStatusNote?: string;
   };
   readonly disclaimer: string;
 }

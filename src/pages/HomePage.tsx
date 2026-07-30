@@ -3,7 +3,7 @@ import { RouteLink, useDocumentMeta } from "../router";
 export function HomePage() {
   useDocumentMeta(
     "Private facial measurements",
-    "Transparent facial geometry, repeatability checks, and an optional experimental SCUT benchmark estimate that runs privately in your browser.",
+    "Transparent facial geometry, repeatability checks, and an optional experimental 0–10 geometry score that runs privately in your browser.",
   );
 
   return (
@@ -91,7 +91,7 @@ export function HomePage() {
           <p>
             A single photograph is convenient. A precision scan is more honest:
             it checks whether the same metric holds across three accepted
-            captures before using it in the optional benchmark estimate.
+            captures before using it in the optional score.
           </p>
         </div>
         <div className="mode-showcase">
@@ -161,19 +161,21 @@ export function HomePage() {
       <section className="section section-blue">
         <div className="score-story">
           <div>
-            <span className="eyebrow">Optional benchmark estimate</span>
+            <span className="eyebrow">Optional geometry score</span>
             <h2>An x.x / 10 result you can take apart.</h2>
             <p>
-              Adult men can explicitly opt in to a pooled SCUT-FBP5500
-              geometry estimate. MirrorMetric shows a 90% range, every
-              standardized input and coefficient, and withholds the result when
-              a required precision measurement is unstable.
+              Adult men can explicitly opt in to a transparent broad-band
+              geometry score. MirrorMetric shows an input-sensitivity range,
+              every target, weight, and contribution, and withholds the result
+              when a required precision measurement is unstable. A SCUT
+              preference model replaces the fallback only after it passes the
+              published release gates.
             </p>
             <RouteLink className="text-link" to="/methodology#score">
               Read the complete score policy
             </RouteLink>
           </div>
-          <div className="score-specimen" aria-label="Illustrative transparent benchmark score breakdown">
+          <div className="score-specimen" aria-label="Illustrative transparent geometry score breakdown">
             <div className="score-ring">
               <strong>7.2</strong>
               <span>out of 10 · illustrative</span>
@@ -193,8 +195,8 @@ export function HomePage() {
               </li>
             </ul>
             <p>
-              Experimental benchmark estimate. Not a percentile, inferred
-              identity, or a U.S.-women-18–21 prediction.
+              Experimental geometry balance score. Not a validated attractiveness
+              rating, percentile, inferred identity, or preference prediction.
             </p>
           </div>
         </div>

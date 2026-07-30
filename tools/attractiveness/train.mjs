@@ -48,18 +48,38 @@ async function loadRows(landmarkDirectory, ratingsPath) {
   const lines = (await readFile(ratingsPath, "utf8"))
     .split(/\r?\n/)
     .filter((line) => line.trim());
-  const headers = parseCsvLine(lines.shift()).map((header) =>
-    header.toLowerCase(),
-  );
-  const fileColumn = headers.findIndex((header) =>
-    ["file", "filename", "image"].includes(header),
-  );
-  const scoreColumn = headers.findIndex((header) =>
-    ["score", "rating", "mean_rating"].includes(header),
-  );
-  const subgroupColumn = headers.indexOf("subgroup");
-  if (fileColumn < 0 || scoreColumn < 0) {
-    throw new Error("Ratings CSV needs file and score columns.");
+  const officialLabelFormat = !lines[0]?.includes(",");
+  let ratingRows;
+  if (officialLabelFormat) {
+    ratingRows = lines.map((line) => {
+      const match = line.trim().match(/^(.+?)\s+([+-]?(?:\d+\.?\d*|\.\d+))$/);
+      if (!match) {
+        throw new Error(`Invalid SCUT All_labels.txt row: ${line}`);
+      }
+      return { fileName: match[1], score: Number(match[2]), subgroup: undefined };
+    });
+  } else {
+    const headers = parseCsvLine(lines.shift()).map((header) =>
+      header.toLowerCase(),
+    );
+    const fileColumn = headers.findIndex((header) =>
+      ["file", "filename", "image"].includes(header),
+    );
+    const scoreColumn = headers.findIndex((header) =>
+      ["score", "rating", "mean_rating"].includes(header),
+    );
+    const subgroupColumn = headers.indexOf("subgroup");
+    if (fileColumn < 0 || scoreColumn < 0) {
+      throw new Error("Ratings CSV needs file and score columns.");
+    }
+    ratingRows = lines.map((line) => {
+      const cells = parseCsvLine(line);
+      return {
+        fileName: cells[fileColumn],
+        score: Number(cells[scoreColumn]),
+        subgroup: subgroupColumn >= 0 ? cells[subgroupColumn] : undefined,
+      };
+    });
   }
   const available = new Map(
     (await readdir(landmarkDirectory))
@@ -67,27 +87,34 @@ async function loadRows(landmarkDirectory, ratingsPath) {
       .map((file) => [basename(file, extname(file)), file]),
   );
   const rows = [];
-  for (const line of lines) {
-    const cells = parseCsvLine(line);
-    const fileName = cells[fileColumn];
+  const exclusions = [];
+  for (const ratingRow of ratingRows) {
+    const { fileName, score } = ratingRow;
     const stem = basename(fileName, extname(fileName));
     const pointFile = available.get(stem);
     if (!pointFile || !/^(AM|CM)/i.test(stem)) continue;
-    const score = Number(cells[scoreColumn]);
     if (!Number.isFinite(score) || score < 1 || score > 5) {
       throw new Error(`Invalid 1–5 SCUT rating for ${fileName}.`);
     }
-    const points = parsePts(
-      await readFile(join(landmarkDirectory, pointFile), "utf8"),
-    );
+    let points;
+    try {
+      points = parsePts(await readFile(join(landmarkDirectory, pointFile)));
+    } catch (error) {
+      exclusions.push({
+        id: stem,
+        reason:
+          error instanceof Error ? error.message : "Landmark parsing failed.",
+      });
+      continue;
+    }
     rows.push({
       id: stem,
       score,
-      subgroup: subgroupFor(fileName, cells[subgroupColumn]),
+      subgroup: subgroupFor(fileName, ratingRow.subgroup),
       features: extractCrossTopologyFeatures(points),
     });
   }
-  return rows;
+  return { rows, exclusions };
 }
 
 const landmarkDirectory = argument("--landmarks");
@@ -99,7 +126,10 @@ if (!landmarkDirectory || !ratingsPath || !outputPath) {
   );
 }
 const seed = Number(argument("--seed", "20260729"));
-const rows = await loadRows(resolve(landmarkDirectory), resolve(ratingsPath));
+const { rows, exclusions } = await loadRows(
+  resolve(landmarkDirectory),
+  resolve(ratingsPath),
+);
 const training = trainNestedRidge(rows, { seed });
 const redistributionConfirmed =
   argument("--redistribution-confirmed", "false") === "true";
@@ -122,6 +152,7 @@ const manifest = {
       selectedLambdas: training.selectedLambdas,
       finalLambda: training.finalLambda,
     },
+    exclusions,
   },
   license: {
     code: "MIT",
@@ -145,6 +176,7 @@ console.log(
     {
       output: resolve(outputPath),
       redistributionConfirmed,
+      exclusions,
       validation: training.validation,
     },
     null,

@@ -1,9 +1,10 @@
-No SCUT-derived model pack is distributed in this build.
+No SCUT-derived preference-model pack is distributed in this build.
 
 MirrorMetric source and training code are MIT licensed. SCUT-FBP5500 and any
 derived model pack remain subject to separate dataset terms. A public pack may
 be added only after redistribution rights are confirmed, all benchmark gates
 pass, and its exact bytes are pinned by VITE_ATTRACTIVENESS_MODEL_SHA256.
 
-Without that pack, the optional score is withheld and raw facial measurements
-remain available.
+Without that pack, MirrorMetric uses its MIT-licensed, project-defined geometry
+balance fallback. The fallback is not trained on attractiveness labels and is
+not presented as a validated SCUT estimate.

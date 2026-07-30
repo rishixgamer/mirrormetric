@@ -197,7 +197,7 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
             modelError?: string;
           } = { requested: false };
       if (scoreEnabled) {
-        setStatus("Loading and verifying the optional benchmark model…");
+        setStatus("Selecting and verifying the optional score method…");
         try {
           const loaded = await loadAttractivenessModel();
           scoreRequest = {
@@ -205,13 +205,11 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
             model: loaded.manifest,
             checksum: loaded.checksum,
           };
-        } catch (caught) {
+        } catch {
           scoreRequest = {
             requested: true,
             modelError:
-              caught instanceof Error
-                ? caught.message
-                : "The optional benchmark model is unavailable.",
+              "A validated SCUT preference model was unavailable, so the transparent geometry fallback was used.",
           };
         }
       }
@@ -384,7 +382,7 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
             </label>
           </fieldset>
           <fieldset className="score-opt-in">
-            <legend>Optional experimental benchmark score</legend>
+            <legend>Optional experimental 0–10 score</legend>
             <label>
               <input
                 type="checkbox"
@@ -392,9 +390,9 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
                 onChange={(event) => setScoreEnabled(event.target.checked)}
               />
               <span>
-                <strong>Show an experimental attractiveness estimate</strong>
-                Load a separately versioned geometry model after this opt-in
-                and display an x.x / 10 estimate with a 90% range.
+                <strong>Show an experimental 0–10 geometry score</strong>
+                Display an x.x / 10 result with its input-sensitivity range and
+                every inspectable component.
               </span>
             </label>
             {scoreEnabled && (
@@ -415,10 +413,10 @@ export function AnalyzePage({ onComplete }: AnalyzePageProps) {
               </label>
             )}
             <p>
-              This is a pooled SCUT benchmark estimate, not a prediction of what
-              U.S. women ages 18–21 find attractive. If no redistribution-cleared
-              model is present, the score is withheld while raw measurements
-              still complete.
+              A release-gated SCUT benchmark is used only when a verified model
+              is available. Otherwise MirrorMetric uses a project-defined broad-band
+              geometry score. The fallback is not a validated attractiveness
+              rating or a prediction of what U.S. women ages 18–21 prefer.
             </p>
           </fieldset>
           <div className="analyze-action">

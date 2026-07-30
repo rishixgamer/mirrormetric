@@ -12,7 +12,7 @@ Target: WCAG 2.2 Level AA.
   primary paper and dark themes exceed 15:1, error text exceeds 9:1.
 - React source audit led to explicit alert live regions, fieldset/legend
   grouping for required and score confirmations, a single labeled file picker,
-  and one complete accessible name for the score and its 90% range.
+and one complete accessible name for the score and its labeled range.
 
 The source scanner also reports file-level false positives because it treats
 every component and stylesheet as a standalone document. In the rendered DOM,

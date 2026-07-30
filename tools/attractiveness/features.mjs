@@ -80,7 +80,47 @@ function canthalTilt(outer, inner) {
     : (Math.atan2(inner.y - outer.y, horizontal) * 180) / Math.PI;
 }
 
-export function parsePts(text) {
+function parseBinaryPts(bytes) {
+  if (bytes.byteLength < 4) {
+    throw new Error("SCUT binary landmark file is truncated.");
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const pointCount = view.getUint32(0, true);
+  if (pointCount !== 86) {
+    throw new Error(`Expected 86 SCUT landmarks, received ${pointCount}.`);
+  }
+  const expectedLength = 4 + pointCount * 8;
+  if (bytes.byteLength !== expectedLength) {
+    throw new Error(
+      `SCUT binary landmark file has ${bytes.byteLength} bytes; expected ${expectedLength}.`,
+    );
+  }
+  return Array.from({ length: pointCount }, (_, index) => {
+    const offset = 4 + index * 8;
+    const x = view.getFloat32(offset, true);
+    const y = view.getFloat32(offset + 4, true);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      throw new Error(`Non-finite SCUT point: point ${index + 1}.`);
+    }
+    return { x, y };
+  });
+}
+
+export function parsePts(input) {
+  if (input instanceof Uint8Array) {
+    const view =
+      input.byteLength >= 4
+        ? new DataView(input.buffer, input.byteOffset, input.byteLength)
+        : undefined;
+    if (view?.getUint32(0, true) === 86) {
+      return parseBinaryPts(input);
+    }
+    input = new TextDecoder().decode(input);
+  }
+  if (typeof input !== "string") {
+    throw new Error("SCUT landmark input must be text or binary bytes.");
+  }
+  const text = input;
   const lines = text.split(/\r?\n/);
   const points = [];
   let inside = !lines.some((line) => line.trim() === "{");
