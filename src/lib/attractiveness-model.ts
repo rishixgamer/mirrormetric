@@ -191,7 +191,7 @@ export async function loadAttractivenessModel(
     .toLowerCase();
   if (!/^[a-f0-9]{64}$/.test(expectedChecksum)) {
     throw new Error(
-      "The optional benchmark model is not distributed in this build because redistribution rights have not been confirmed.",
+      "No release-eligible benchmark model is configured for this build.",
     );
   }
   const response = await (options.fetcher ?? fetch)(ATTRACTIVENESS_MODEL_PATH, {

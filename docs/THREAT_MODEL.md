@@ -24,7 +24,7 @@ payload.
 | Photo upload or telemetry | No endpoint; same-origin `connect-src`; browser network tests |
 | Third-party runtime substitution | Pinned local model/WASM plus SHA-256 manifest |
 | Unsupported capture presented confidently | Fail-closed quality, face-count, pose, framing, and expression gates |
-| Hidden score assumptions | Versioned features, normalization, coefficients, contributions, exclusions, validation, provenance, and uncertainty |
+| Hidden score assumptions | Versioned bands or features, weights or coefficients, contributions, exclusions, provenance, and range method |
 | Score loaded without consent | Separate adult-man fieldset; lazy load only after explicit score opt-in |
 | Score-model substitution | Same-origin GET, build-pinned SHA-256, strict manifest/release/license validation, fail-closed response |
 | Facial data in score request | Static GET without a request body; automated network assertions |
@@ -43,7 +43,7 @@ payload.
 - screen recording, screenshots, shoulder surfing, or clipboard monitoring;
 - denial of service or a compromised production origin;
 - model bias and undetected landmark error;
-- misleading interpretation of a subjective 0–10 benchmark estimate;
+- misleading interpretation of a project-defined 0–10 geometry score;
 - SCUT cohort, subject-age, rater, and topology mismatch;
 - maliciously altered source builds outside the official tagged deployment;
 - exported files copied by other local software; and

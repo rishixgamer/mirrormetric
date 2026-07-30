@@ -164,11 +164,11 @@ export function HistoryPage({ onOpen }: HistoryPageProps) {
                     <h3>
                       {session.attractivenessScore?.status === "available" &&
                       session.attractivenessScore.score !== undefined
-                        ? `${session.attractivenessScore.score.toFixed(1)} / 10 experimental benchmark estimate`
+                        ? `${session.attractivenessScore.score.toFixed(1)} / 10 ${session.attractivenessScore.provenance.label}`
                         : session.legacyGoalScore
                           ? `${session.legacyGoalScore.score.toFixed(0)} legacy goal similarity`
                           : session.scoreRequested
-                            ? "Benchmark score withheld"
+                            ? "Experimental score withheld"
                             : "Raw measurement record"}
                     </h3>
                     <dl>

@@ -77,18 +77,18 @@ export function TermsPage() {
       </p>
       <h2>No medical or professional advice</h2>
       <p>
-        Measurements, the optional benchmark estimate, and educational links
+        Measurements, the optional geometry score, and educational links
         are not diagnoses, treatment recommendations, predictions of surgical
         outcome, or substitutes for a qualified professional. Procedures are
         never ranked for an individual.
       </p>
       <h2>No objective beauty claim</h2>
       <p>
-        The optional score is an experimental pooled SCUT-FBP5500 benchmark
-        estimate for self-confirmed adult men. It does not represent U.S. women
-        ages 18–21 and does not measure objective attractiveness, health,
-        character, identity, gender, ethnicity, social value, or personal
-        worth. It is not a percentile.
+        The public optional score is an experimental fit to broad,
+        project-defined geometry bands—not a validated attractiveness model.
+        It does not represent U.S. women ages 18–21 and does not measure
+        objective attractiveness, health, character, identity, gender,
+        ethnicity, social value, or personal worth. It is not a percentile.
       </p>
       <h2>Prohibited use</h2>
       <p>

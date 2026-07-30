@@ -10,7 +10,7 @@ import { aggregateMeasurements } from "./aggregation";
 import { buildGuidance } from "./guidance";
 import {
   computeAttractivenessScore,
-  createWithheldAttractivenessScore,
+  computeGeometryBalanceScore,
 } from "./scoring";
 
 export interface ScoreRequest {
@@ -36,8 +36,11 @@ export function createAnalysisSession(
           scoreRequest.model,
           scoreRequest.checksum,
         )
-      : createWithheldAttractivenessScore(
-          scoreRequest.modelError ?? "The optional benchmark model is unavailable.",
+      : computeGeometryBalanceScore(
+          measurements,
+          mode,
+          scoreRequest.modelError ??
+            "A validated benchmark model is unavailable; the transparent geometry fallback was used.",
         )
     : undefined;
   return {
@@ -78,7 +81,11 @@ export function replaceCapture(
             session.attractivenessModel,
             session.attractivenessScore?.provenance.checksum,
           )
-        : session.attractivenessScore
+        : computeGeometryBalanceScore(
+            measurements,
+            session.mode,
+            session.attractivenessScore?.provenance.modelStatusNote,
+          )
       : undefined,
     guidance: buildGuidance(measurements),
   };
