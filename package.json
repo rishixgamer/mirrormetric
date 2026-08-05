@@ -19,7 +19,7 @@
     "check": "pnpm test && pnpm verify:attractiveness && pnpm verify:checksums && pnpm verify:licenses && pnpm build"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "1.0.0",
+    "@mediapipe/tasks-vision": "1.0.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },

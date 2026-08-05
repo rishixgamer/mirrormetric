@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mediapipe/tasks-vision':
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.0.1
+        version: 1.0.1
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -68,8 +68,8 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
-  '@mediapipe/tasks-vision@1.0.0':
-    resolution: {integrity: sha512-D9xp3MEMArzkx4s+M7rDWCIIST7Bh0uqIImSazgX5nS05o3gfw/bT/wY6j7N6R+H6/AgvUM2lOPvAnniwdeQbg==}
+  '@mediapipe/tasks-vision@1.0.1':
+    resolution: {integrity: sha512-rvRE2FmAZ6ZxKSw7wq+e+jQDpN3t1B/tD2mJz9SmAzb1msoDkd4dMoE4wAh8Z30Um0PQwLiHr9QtomhmXk3aUQ==}
 
   '@napi-rs/wasm-runtime@1.2.0':
     resolution: {integrity: sha512-kDoONqMa+VnZ4vvvu/ZUurpJ4gkZU57e7g69qpNgWhYcZFPUHZM2CEMKm+cG6ufDVALbjMvfmMjFVqaK7uEMnA==}
@@ -703,7 +703,7 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
-  '@mediapipe/tasks-vision@1.0.0': {}
+  '@mediapipe/tasks-vision@1.0.1': {}
 
   '@napi-rs/wasm-runtime@1.2.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
     dependencies:
